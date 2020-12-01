@@ -18,70 +18,99 @@
      (A → B) ;; function type
      (A & B) ;; intersection type
      )
-  (Γ ::= ;; context
+  (Γ ::=
      · ;; empty
      (Γ ◃ x : A)) ;; bind (x : A) in T
 
-  (ψ ::= ;; arguments given
+  (Ψ ::=
      · ;; empty
-     (ψ ◃ A)) ;; with argument S : A
+     (Ψ ◃ A)) ;; with argument S : A
 
   (x ::= variable-not-otherwise-mentioned))
 
 (define-judgment-form AppL
-  #:mode (subtype I I I)
-  #:contract (subtype A <: B)
+  #:mode (sub I I I)
+  #:contract (sub A <: B)
   [--------------- sub_int
-   (subtype Int <: Int)]
+   (sub Int <: Int)]
+  [--------------- sub_bool
+   (sub Bool <: Bool)]
   [--------------- sub_top
-   (subtype A <: Top)]
-  [(subtype C <: A)
-   (subtype B <: D)
+   (sub A <: Top)]
+  [(sub C <: A)
+   (sub B <: D)
    ------------------------ sub_arrow
-   (subtype (A → B) <: (C → D))]
-  [(subtype A <: B)
-   (subtype A <: C)
+   (sub (A → B) <: (C → D))]
+  [(sub A <: B)
+   (sub A <: C)
    --------------------- sub_and
-   (subtype A <: (B & C))]
-  [(subtype A <: C)
+   (sub A <: (B & C))]
+  [(sub A <: C)
    --------------------- sub_andl
-   (subtype (A & B) <: C)]
-  [(subtype B <: C)
+   (sub (A & B) <: C)]
+  [(sub B <: C)
    --------------------- sub_andr
-   (subtype (A & B) <: C)])
+   (sub (A & B) <: C)])
 
-(test-equal (judgment-holds (subtype Int <: Top)) #t)
-(test-equal (judgment-holds (subtype (Top → Top) <: (Int → Top))) #t)
+(test-equal (judgment-holds (sub Int <: Top)) #t)
+(test-equal (judgment-holds (sub (Top → Top) <: (Int → Top))) #t)
 
 (define-judgment-form AppL
   #:mode (appsub I I I I O)
-  #:contract (appsub ψ ⊢ A <: B)
+  #:contract (appsub Ψ ⊢ A <: B)
   [-------------------- appsub_refl
    (appsub · ⊢ A <: A)]
-  [(subtype C <: A)
-   (appsub ψ ⊢ B <: D)
+  [(sub C <: A)
+   (appsub Ψ ⊢ B <: D)
    ---------------------------- appsub_fun
-   (appsub (ψ ◃ C) ⊢ (A → B) <: D)]
-  [(appsub (ψ ◃ C) ⊢ A <: D)
+   (appsub (Ψ ◃ C) ⊢ (A → B) <: (C → D))]
+  [(appsub (Ψ ◃ C) ⊢ A <: D)
    ---------------------------- appsub_andl
-   (appsub (ψ ◃ C) ⊢ (A & B) <: D)]
-  [(appsub (ψ ◃ C) ⊢ B <: D)
+   (appsub (Ψ ◃ C) ⊢ (A & B) <: D)]
+
+  ;; (judgment-holds (appsub (· ◃ Int) ⊢ ((Int → Int) & (Int → Bool)) <: A) A)
+  ;; => '((Int → Bool) (Int → Int))
+  ;; ambiguity here !!
+  
+  
+  [(appsub (Ψ ◃ C) ⊢ B <: D)
    ---------------------------- appsub_andr
-   (appsub (ψ ◃ C) ⊢ (A & B) <: D)]
-  [(appsub (ψ ◃ A) ⊢ C <: D)
+   (appsub (Ψ ◃ C) ⊢ (A & B) <: D)]
+  [(appsub (Ψ ◃ A) ⊢ C <: D)
    --------------------------- appsub_and1
-   (appsub (ψ ◃ (A & B)) ⊢ C <: D)]
-  [(appsub (ψ ◃ B) ⊢ C <: D)
+   (appsub (Ψ ◃ (A & B)) ⊢ C <: D)]
+  [(appsub (Ψ ◃ B) ⊢ C <: D)
    --------------------------- appsub_and2
-   (appsub (ψ ◃ (A & B)) ⊢ C <: D)]
+   (appsub (Ψ ◃ (A & B)) ⊢ C <: D)]
   )
+
 
 (test-equal (judgment-holds (appsub · ⊢ Int <: A) A)
             (list (term Int)))
 (test-equal (judgment-holds (appsub (· ◃ Int) ⊢ (Int → Int) <: A) A)
-            (list (term Int)))
+            (list (term (Int → Int))))
 (test-equal (judgment-holds (appsub (· ◃ Int) ⊢ ((Int → Int) & (Bool → Bool)) <: A) A)
-            (list (term Int)))
+            (list (term (Int → Int))))
+
+;; lemma 5 reflexivity
+;; Ψ ⊢ Ψ → A <: Ψ → A
+
+;; ·, Int ⊢ Int -> Int <: Int -> Int
+(test-equal (judgment-holds (appsub (· ◃ Int) ⊢ (Int → Int) <: A) A)
+            (list (term (Int → Int))))
+
+;; ., Int, Int |- Int -> (Int -> Bool) <: Int -> (Int -> Bool)
+;; Attention: right associativity should be considered
+(test-equal (judgment-holds (appsub ((· ◃ Int) ◃ Int) ⊢ (Int → (Int → Bool)) <: A) A)
+            (list (term (Int → (Int → Bool)))))
+
+;; lemma 6 transitivity
+;; Ψ1 ⊢ A <: Ψ1 → B
+;; Ψ2 ⊢ B <: Ψ2 → C
+;; then Ψ2, Ψ1 ⊢ A <: Ψ1 → Ψ2 → C
+
+
+
 ;; \Psi
 ;; \Gam
 ;; \vdash
