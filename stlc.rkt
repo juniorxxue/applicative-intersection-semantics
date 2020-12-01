@@ -18,13 +18,13 @@
      (A → B) ;; function type
      (A & B) ;; intersection type
      )
-  (T ::= ;; context
+  (Γ ::= ;; context
      · ;; empty
-     (T x : A)) ;; bind (x : A) in T
+     (Γ ◃ x : A)) ;; bind (x : A) in T
 
-  (S ::= ;; arguments given
+  (ψ ::= ;; arguments given
      · ;; empty
-     (S : A)) ;; with argument S : A
+     (ψ ◃ A)) ;; with argument S : A
 
   (x ::= variable-not-otherwise-mentioned))
 
@@ -55,30 +55,59 @@
 
 (define-judgment-form AppL
   #:mode (appsub I I I I O)
-  #:contract (appsub S ⊢ A <: B)
+  #:contract (appsub ψ ⊢ A <: B)
   [-------------------- appsub_refl
    (appsub · ⊢ A <: A)]
   [(subtype C <: A)
-   (appsub S ⊢ B <: D)
+   (appsub ψ ⊢ B <: D)
    ---------------------------- appsub_fun
-   (appsub (S : C) ⊢ (A → B) <: D)]
-  [(appsub (S : C) ⊢ A <: D)
+   (appsub (ψ ◃ C) ⊢ (A → B) <: D)]
+  [(appsub (ψ ◃ C) ⊢ A <: D)
    ---------------------------- appsub_andl
-   (appsub (S : C) ⊢ (A & B) <: D)]
-  [(appsub (S : C) ⊢ B <: D)
+   (appsub (ψ ◃ C) ⊢ (A & B) <: D)]
+  [(appsub (ψ ◃ C) ⊢ B <: D)
    ---------------------------- appsub_andr
-   (appsub (S : C) ⊢ (A & B) <: D)]
-  [(appsub (S : A) ⊢ C <: D)
+   (appsub (ψ ◃ C) ⊢ (A & B) <: D)]
+  [(appsub (ψ ◃ A) ⊢ C <: D)
    --------------------------- appsub_and1
-   (appsub (S : (A & B)) ⊢ C <: D)]
-  [(appsub (S : B) ⊢ C <: D)
+   (appsub (ψ ◃ (A & B)) ⊢ C <: D)]
+  [(appsub (ψ ◃ B) ⊢ C <: D)
    --------------------------- appsub_and2
-   (appsub (S : (A & B)) ⊢ C <: D)]
+   (appsub (ψ ◃ (A & B)) ⊢ C <: D)]
   )
 
 (test-equal (judgment-holds (appsub · ⊢ Int <: A) A)
             (list (term Int)))
-(test-equal (judgment-holds (appsub (· : Int) ⊢ (Int → Int) <: A) A)
+(test-equal (judgment-holds (appsub (· ◃ Int) ⊢ (Int → Int) <: A) A)
             (list (term Int)))
-(test-equal (judgment-holds (appsub (· : Int) ⊢ ((Int → Int) & (Bool → Bool)) <: A) A)
+(test-equal (judgment-holds (appsub (· ◃ Int) ⊢ ((Int → Int) & (Bool → Bool)) <: A) A)
             (list (term Int)))
+;; \Psi
+;; \Gam
+;; \vdash
+;; \Righta
+
+(define-metafunction AppL
+  lookup : Γ x -> A
+  [(lookup (Γ ◃ x : A) x) A]
+  [(lookup (Γ ◃ x_1 : A) x_2) (lookup Γ x_2)]
+  [(lookup · x) #f])
+
+(define-judgment-form AppL
+  #:mode (app-mode I I I I I O)
+  #:contract (app-mode Γ Ψ ⊢ e ⇒ A)
+  [------------------------- type_int
+   (app-mode Γ Ψ ⊢ n ⇒ Int)]
+  
+  [(where A (lookup Γ x))
+   -------------------------- type_var
+   (app-mode Γ Ψ ⊢ x ⇒ A)]
+  )
+
+
+#;(define-judgment-form AppL
+  #:mode (check-mode I I I I I)
+  #:contract (check-mode Ψ ⊢ e ⇐ A)
+  )
+  
+  
