@@ -1,5 +1,5 @@
 #lang racket
-(require redex/reduction-semantics)
+(require redex)
 
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
@@ -10,6 +10,8 @@
   #:binding-forms
   (lambda (x) e :refers-to x)
   )
+
+(default-language)
 
 (define-judgment-form L
   #:mode (sub I I)
@@ -36,3 +38,19 @@
 
 (test-judgment-holds (sub int top))
 (test-judgment-holds (sub (top -> top) (int -> top)))
+
+;; subtyping reflexivity
+
+(define (sub-reflexivity-holds? tau)
+  (judgment-holds (sub ,tau ,tau)))
+
+(redex-check L tau (sub-reflexivity-holds? (term tau)))
+
+;; subtyping transitivity
+
+(define-judgment-form L
+  #:mode (sub-trans I I I)
+  [(sub-trans tau_1 tau_2 tau_3) (sub tau_1 tau_2) (sub tau_2 tau_3)]
+  )
+
+(redex-check L #:satisfying (sub-trans tau_1 tau_2 tau_3) (judgment-holds (sub tau_1 tau_3)))
