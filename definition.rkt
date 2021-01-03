@@ -3,10 +3,11 @@
 
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
-  (e ::= number x (lambda (x) e) (e e) (e doublecomma e) (e : tau)) ;; doublecomma for merge operator
+  (e ::= number false true x (lambda (x) e) (e e) (e doublecomma e) (e : tau));; doublecomma for merge operator
   (tau ::= int bool top (tau -> tau) (tau & tau)) ;; & for intersection types
-  ;; (Gamma ::= ((x tau) ...)) ;; type context
+  (Gamma ::= empty (Gamma comma x : tau)) ;; ctx
   (Psi ::= empty (Psi comma tau)) ;; stack of args
+  (mode ::= => <=) ;; => for infer and <= for check
   #:binding-forms
   (lambda (x) e :refers-to x)
   )
@@ -100,6 +101,44 @@
    (appsub Psi (tau_1 & tau_2) tau_3)]
   )
 
+(define-metafunction L
+  stack-type : Psi tau -> tau
+  [(stack-type empty tau_1) tau_1]
+  [(stack-type (Psi comma tau_1) tau_2) (tau_1 -> (stack-type Psi tau_2))])
+
 ;; appsub to sub
-(redex-check L #:satisfying (appsub Psi tau_1 tau_2) (judgment-holds (sub tau_1 tau_2)))
+;; (redex-check L #:satisfying (appsub Psi tau_1 tau_2) (judgment-holds (sub tau_1 tau_2)))
+
 ;; appsub reflexivity
+;; (judgment-holds (appsub empty (int & int) tau) tau)
+;; '((int & int) int)
+;; sometimes is includes mul
+(define (appsub-reflexivity-holds? Psi-var tau-var)
+  (not (equal? (member tau-var (judgment-holds (appsub ,Psi-var ,tau-var tau) tau)) #f)))
+
+;; (redex-check L (Psi tau) (appsub-reflexivity-holds? (term Psi) (term (stack-type Psi tau))))
+
+(define-metafunction L
+  lookup : Gamma x -> tau or #f
+  [(lookup (Gamma comma x : tau) x) tau]
+  [(lookup (Gamma comma x_1 : tau) x_2) (lookup Gamma x_2)]
+  [(lookup empty x) #f])
+
+(define-judgment-form L
+  #:mode (typeof I I I I O)
+  #:contract (typeof Gamma Psi mode e tau)
+  [---------------------------------- "typing-int"
+   (typeof Gamma empty => number int)]
+  [---------------------------------- "typing-true"
+   (typeof Gamma empty => true bool)]
+  [---------------------------------- "typing-false"
+   (typeof Gamma empty => false bool)]
+  [(where tau (lookup Gamma x))
+   ---------------------------------- "typing-var"
+   (typeof Gamma empty => x tau)]
+  )
+
+;; apparently all number is int
+(redex-check L (Gamma number) (judgment-holds (typeof Gamma empty => number int)))
+(redex-check L Gamma (judgment-holds (typeof Gamma empty => true bool)))
+(redex-check L Gamma (judgment-holds (typeof Gamma empty => false bool)))
