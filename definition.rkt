@@ -5,8 +5,8 @@
   (x ::= variable-not-otherwise-mentioned)
   (e ::= number x (lambda (x) e) (e e) (e doublecomma e) (e : tau)) ;; doublecomma for merge operator
   (tau ::= int bool top (tau -> tau) (tau & tau)) ;; & for intersection types
-  (Gamma ::= ((x tau) ...)) ;; type context
-  (Psi ::= (tau ...)) ;; stack of args
+  ;; (Gamma ::= ((x tau) ...)) ;; type context
+  (Psi ::= empty (Psi comma tau)) ;; stack of args
   #:binding-forms
   (lambda (x) e :refers-to x)
   )
@@ -62,11 +62,11 @@
   #:mode (appsub-ambi I I O)
   #:contract (appsub-ambi Psi tau tau)
   [-------------------- "appsub-refl"
-   (appsub-ambi () tau tau)]
+   (appsub-ambi empty tau tau)]
   [(sub tau_3 tau_1)
-   (appsub-ambi (tau ...) tau_2 tau_4)
+   (appsub-ambi Psi tau_2 tau_4)
    -------------------- "appsub-fun"
-   (appsub-ambi (tau_3 tau ...) (tau_1 -> tau_2) (tau_3 -> tau_4))]
+   (appsub-ambi (Psi comma tau_3) (tau_1 -> tau_2) (tau_3 -> tau_4))]
   [(appsub-ambi Psi tau_1 tau_3)
    -------------------- "appsub-andl"
    (appsub-ambi Psi (tau_1 & tau_2) tau_3)]
@@ -76,8 +76,8 @@
   )
 
 ;; justify the rules, uncomment lines below to see ambiuguities
-;; (show-derivations (build-derivations (appsub-ambi (int) ((int -> int) & (bool -> bool)) (int -> int))))
-;; (show-derivations (build-derivations (appsub-ambi (int) ((int -> int) & (int -> bool)) tau)))
+;; (show-derivations (build-derivations (appsub-ambi (empty comma int) ((int -> int) & (bool -> bool)) (int -> int))))
+;; (show-derivations (build-derivations (appsub-ambi (empty comma int) ((int -> int) & (int -> bool)) tau)))
 
 
 ;; modify the rules of andl, andr
@@ -85,11 +85,11 @@
   #:mode (appsub I I O)
   #:contract (appsub Psi tau tau)
   [-------------------- "appsub-refl"
-   (appsub () tau tau)]
+   (appsub empty tau tau)]
   [(sub tau_3 tau_1)
-   (appsub (tau ...) tau_2 tau_4)
+   (appsub Psi tau_2 tau_4)
    -------------------- "appsub-fun"
-   (appsub (tau_3 tau ...) (tau_1 -> tau_2) (tau_3 -> tau_4))]
+   (appsub (Psi comma tau_3) (tau_1 -> tau_2) (tau_3 -> tau_4))]
   [(appsub Psi tau_1 tau_3)
    ;; (side-condition (not (judgment-holds (appsub Psi tau_2 tau_3))))
    -------------------- "appsub-andl"
@@ -99,3 +99,7 @@
    -------------------- "appsub-andr"
    (appsub Psi (tau_1 & tau_2) tau_3)]
   )
+
+;; appsub to sub
+(redex-check L #:satisfying (appsub Psi tau_1 tau_2) (judgment-holds (sub tau_1 tau_2)))
+;; appsub reflexivity
