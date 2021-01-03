@@ -91,9 +91,11 @@
    -------------------- "appsub-fun"
    (appsub (tau_3 tau ...) (tau_1 -> tau_2) (tau_3 -> tau_4))]
   [(appsub Psi tau_1 tau_3)
+   ;; (side-condition (not (judgment-holds (appsub Psi tau_2 tau_3))))
    -------------------- "appsub-andl"
    (appsub Psi (tau_1 & tau_2) tau_3)]
   [(appsub Psi tau_2 tau_3)
+   ;; (side-condition (not (judgment-holds (appsub Psi tau_1 tau_3))))
    -------------------- "appsub-andr"
    (appsub Psi (tau_1 & tau_2) tau_3)]
   )
