@@ -124,21 +124,51 @@
   [(lookup (Gamma comma x_1 : tau) x_2) (lookup Gamma x_2)]
   [(lookup empty x) #f])
 
+
 (define-judgment-form L
-  #:mode (typeof I I I I O)
-  #:contract (typeof Gamma Psi mode e tau)
+  #:mode (infer I I I I O)
+  #:contract (infer Gamma Psi e => tau)
   [---------------------------------- "typing-int"
-   (typeof Gamma empty => number int)]
+   (infer Gamma empty number => int)]
   [---------------------------------- "typing-true"
-   (typeof Gamma empty => true bool)]
+   (infer Gamma empty true => bool)]
   [---------------------------------- "typing-false"
-   (typeof Gamma empty => false bool)]
+   (infer Gamma empty false => bool)]
   [(where tau (lookup Gamma x))
    ---------------------------------- "typing-var"
-   (typeof Gamma empty => x tau)]
+   (infer Gamma empty x => tau)]
+  [(infer (Gamma comma x : tau_1) Psi e => tau_2)
+   ---------------------------------- "typing-lam-2"
+   (infer Gamma (Psi comma tau_1) (lambda (x) e) => (tau_1 -> tau_2))]
+  [(appsub Psi tau_1 tau_2)
+   (check Gamma empty e <= tau_1)
+   ---------------------------------- "typing-anno"
+   (infer Gamma Psi (e : tau_1) => tau_2)]
+  [(infer Gamma empty e_2 => tau_1)
+   (infer Gamma (Psi comma tau_1) e_1 => (tau_1 -> tau_2))
+   ---------------------------------- "typing-app-1"
+   (infer Gamma Psi (e_1 e_2) => tau_2)]
   )
 
-;; apparently all number is int
-(redex-check L (Gamma number) (judgment-holds (typeof Gamma empty => number int)))
-(redex-check L Gamma (judgment-holds (typeof Gamma empty => true bool)))
-(redex-check L Gamma (judgment-holds (typeof Gamma empty => false bool)))
+(define-judgment-form L
+  #:mode (check I I I I I)
+  #:contract (check Gamma Psi e <= tau)
+  [(check (Gamma comma x : tau_1) nil e <= tau_2)
+   ---------------------------------- "typing-lam-1"
+   (check Gamma empty (lambda (x) e) <= (tau_1 -> tau_2))]
+  [(infer Gamma empty e_2 => tau_1)
+   (check Gamma empty e_1 <= (tau_1 -> tau_2))
+   ---------------------------------- "typing-app-2"
+   (check Gamma empty (e_1 e_2) <= tau_2)]
+  [(infer Gamma empty e => tau_2)
+   (sub tau_2 tau_1)
+   ---------------------------------- "typing-sub"
+   (check Gamma empty e <= tau_1)]
+  )
+
+;; apparently all number is int, true/false is bool
+(redex-check L (Gamma number) (judgment-holds (infer Gamma empty number => int)))
+(redex-check L Gamma (judgment-holds (infer Gamma empty true => bool)))
+(redex-check L Gamma (judgment-holds (infer Gamma empty false => bool)))
+;; all ctx with x : int
+(redex-check L (Gamma comma x : int) (judgment-holds (infer (Gamma comma x : int) empty x => int)))
