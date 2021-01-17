@@ -3,7 +3,7 @@
 
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
-  (e ::= number false true x (lambda (x) e) (e e) (e doublecomma e) (e : tau));; doublecomma for merge operator
+  (e ::= number top false true x (lambda (x) e) (e e) (e doublecomma e) (e : tau));; doublecomma for merge operator
   (tau ::= int bool top (tau -> tau) (tau & tau)) ;; & for intersection types
   (Gamma ::= empty (Gamma comma x : tau)) ;; ctx
   (Psi ::= empty (Psi comma tau)) ;; stack of args
@@ -130,6 +130,8 @@
   #:contract (infer Gamma Psi e => tau)
   [---------------------------------- "typing-int"
    (infer Gamma empty number => int)]
+  [---------------------------------- "typing-top"
+   (infer Gamma empty top => top)]
   [---------------------------------- "typing-true"
    (infer Gamma empty true => bool)]
   [---------------------------------- "typing-false"
@@ -148,12 +150,16 @@
    (infer Gamma (Psi comma tau_1) e_1 => (tau_1 -> tau_2))
    ---------------------------------- "typing-app-1"
    (infer Gamma Psi (e_1 e_2) => tau_2)]
+  [(infer Gamma empty e_1 => tau_1)
+   (infer Gamma empty e_2 => tau_2)
+   ---------------------------------- "typing-merge"
+   (infer Gamma empty (e_1 doublecomma e_2) => (tau_1 & tau_2))]
   )
 
 (define-judgment-form L
   #:mode (check I I I I I)
   #:contract (check Gamma Psi e <= tau)
-  [(check (Gamma comma x : tau_1) nil e <= tau_2)
+  [(check (Gamma comma x : tau_1) empty e <= tau_2)
    ---------------------------------- "typing-lam-1"
    (check Gamma empty (lambda (x) e) <= (tau_1 -> tau_2))]
   [(infer Gamma empty e_2 => tau_1)
@@ -172,3 +178,6 @@
 (redex-check L Gamma (judgment-holds (infer Gamma empty false => bool)))
 ;; all ctx with x : int
 (redex-check L (Gamma comma x : int) (judgment-holds (infer (Gamma comma x : int) empty x => int)))
+
+(test-judgment-holds (infer (empty comma x : int) empty (x : int) => int))
+(test-judgment-holds (infer empty (empty comma int) (lambda (x) 1) => (int -> int)))
