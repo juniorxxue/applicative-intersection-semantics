@@ -92,10 +92,16 @@
    -------------------- "appsub-fun"
    (appsub (Psi comma tau_3) (tau_1 -> tau_2) (tau_3 -> tau_4))]
   [(appsub Psi tau_1 tau_3)
+   (side-condition ,(not (or
+                          (judgment-holds (sub tau_2 (stack-type Psi bool)))
+                          (judgment-holds (sub tau_2 (stack-type Psi int))))))
    ;; (side-condition (not (judgment-holds (appsub Psi tau_2 tau_3))))
    -------------------- "appsub-andl"
    (appsub Psi (tau_1 & tau_2) tau_3)]
   [(appsub Psi tau_2 tau_3)
+   (side-condition ,(not (or
+                          (judgment-holds (sub tau_1 (stack-type Psi bool)))
+                          (judgment-holds (sub tau_1 (stack-type Psi int))))))
    ;; (side-condition (not (judgment-holds (appsub Psi tau_1 tau_3))))
    -------------------- "appsub-andr"
    (appsub Psi (tau_1 & tau_2) tau_3)]
@@ -105,6 +111,15 @@
   stack-type : Psi tau -> tau
   [(stack-type empty tau_1) tau_1]
   [(stack-type (Psi comma tau_1) tau_2) (tau_1 -> (stack-type Psi tau_2))])
+
+
+;; justify the rules, uncomment lines below to see ambiuguities
+;; check it out, ambi will be rejectd !!!
+
+;; !!! solutions for forall types should be explored.
+
+;; (show-derivations (build-derivations (appsub-ambi (empty comma int) ((int -> int) & (bool -> bool)) (int -> int))))
+;; (show-derivations (build-derivations (appsub-ambi (empty comma int) ((int -> int) & (int -> bool)) tau)))
 
 ;; appsub to sub
 ;; (redex-check L #:satisfying (appsub Psi tau_1 tau_2) (judgment-holds (sub tau_1 tau_2)))
