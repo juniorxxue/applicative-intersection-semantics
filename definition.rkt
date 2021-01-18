@@ -44,7 +44,6 @@
    (sub (tau_1 & tau_2) tau_3)]
   )
 
-
 ;; applicative subtyping
 (define-judgment-form L
   #:mode (appsub-ambi I I O)
@@ -97,8 +96,6 @@
    (appsub Psi (tau_1 & tau_2) tau_3)]
   )
 
-
-
 ;; justify the rules, uncomment lines below to see ambiuguities
 ;; check it out, ambi will be rejectd !!!
 
@@ -110,7 +107,6 @@
   [(lookup (Gamma comma x : tau) x) tau]
   [(lookup (Gamma comma x_1 : tau) x_2) (lookup Gamma x_2)]
   [(lookup empty x) #f])
-
 
 (define-judgment-form L
   #:mode (infer I I I I O)
@@ -139,6 +135,7 @@
    (infer Gamma Psi (e_1 e_2) => tau_2)]
   [(infer Gamma empty e_1 => tau_1)
    (infer Gamma empty e_2 => tau_2)
+   (disjoint tau_1 tau_2)
    ---------------------------------- "typing-merge"
    (infer Gamma empty (e_1 doublecomma e_2) => (tau_1 & tau_2))]
   )
@@ -157,4 +154,28 @@
    (sub tau_2 tau_1)
    ---------------------------------- "typing-sub"
    (check Gamma empty e <= tau_1)]
+  )
+
+(define-judgment-form L
+  #:mode (disjoint I I)
+  #:contract (disjoint tau tau)
+  [---------------------------------- "disjoint-top-l"
+   (disjoint top tau)]
+  [---------------------------------- "disjoint-top-r"
+   (disjoint tau top)]
+  [---------------------------------- "disjoint-int-arr"
+   (disjoint int (tau_1 -> tau_2))]
+  [---------------------------------- "disjoint-arr-int"
+   (disjoint (tau_1 -> tau_2) int)]
+  [(disjoint tau_2 tau_4)
+   ---------------------------------- "disjoint-arr"
+   (disjoint (tau_1 -> tau_2) (tau_3 -> tau_4))]
+  [(disjoint tau_1 tau_3)
+   (disjoint tau_2 tau_3)
+   ---------------------------------- "disjoint-and-l"
+   (disjoint (tau_1 & tau_2) tau_3)]
+  [(disjoint tau_1 tau_2)
+   (disjoint tau_1 tau_3)
+   ---------------------------------- "disjoint-and-r"
+   (disjoint tau_1 (tau_2 & tau_3))]
   )
