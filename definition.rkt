@@ -3,6 +3,8 @@
 
 (provide L sub appsub infer check)
 
+(define-syntax-rule (draw x) (show-derivations (build-derivations x)))
+
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
   (e ::= number top false true x (lambda (x) e) (e e) (e doublecomma e) (e : tau));; doublecomma for merge operator
@@ -163,10 +165,18 @@
    (disjoint top tau)]
   [---------------------------------- "disjoint-top-r"
    (disjoint tau top)]
+  [---------------------------------- "disjoint-int-bool"
+   (disjoint int bool)]
+  [---------------------------------- "disjoint-bool-int"
+   (disjoint bool int)]
   [---------------------------------- "disjoint-int-arr"
    (disjoint int (tau_1 -> tau_2))]
   [---------------------------------- "disjoint-arr-int"
    (disjoint (tau_1 -> tau_2) int)]
+  [---------------------------------- "disjoint-bool-arr"
+   (disjoint bool (tau_1 -> tau_2))]
+  [---------------------------------- "disjoint-arr-bool"
+   (disjoint (tau_1 -> tau_2) bool)]
   [(disjoint tau_2 tau_4)
    ---------------------------------- "disjoint-arr"
    (disjoint (tau_1 -> tau_2) (tau_3 -> tau_4))]
