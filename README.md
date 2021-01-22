@@ -27,3 +27,18 @@ lambda (x) x : Int -> Int
 (succ ,, f : Int -> Bool) 3 : Bool
 -- this encounter problem due to disjoiness
 ```
+
+See T-App2 derivations
+
+
+```haskell
+
+	
+                                       . |- (succ ,, f : Int -> Bool) => (Int -> Int) & (Int -> Bool)      (Int -> Int) & (Int -> Bool) <: Int -> Bool
+                                      --------------------------------------------------------------------------------------------------------- TSub
+                         3 => Int      . |- (succ ,, f : Int -> Bool) <= (Int -> Bool)
+                       --------------------------------------------------------------------------------------------------------------------- TApp2
+. |- Bool <: Bool        succ ,, f : Int -> Bool 3 <= Bool
+------------------------------------------------------------------------------------------------------------------------------------- TAnn (triggers check)
+succ ,, f : Int -> Bool) 3 : Bool => Bool
+```
