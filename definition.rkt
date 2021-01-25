@@ -9,6 +9,7 @@
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
   (e ::= number top false true x (lambda (x) e) (e e) (e doublecomma e) (e : tau));; doublecomma for merge operator
+  (v ::= number top false true (lambda (x) e) (e doublecomma e))
   (tau ::= int bool top (tau -> tau) (tau & tau)) ;; & for intersection types
   (Gamma ::= empty (Gamma comma x : tau)) ;; ctx
   (Psi ::= empty (Psi comma tau)) ;; stack of args
@@ -242,3 +243,49 @@
    ---------------------------------- "tred-and"
    (tred e_1 (tau_1 & tau_2) (e_2 doublecomma e_3))]
   )
+
+(define step
+  (reduction-relation
+   L
+   #:domain e
+   #:codomain e
+   (--> (top v) top
+        "step-top")
+   (--> ((lambda (x) e) v) (substitute e x v)
+        "step-beta")
+   (--> (((lambda (x) e_1) : (tau_1 -> tau_2)) v_1) ((substitute e_1 x v_2) : tau_2)
+        (side-condition (judgment-holds (tred v_1 tau_1 v_2)))
+        (where v_2 ,(first (judgment-holds (tred v_1 tau_1 v) v)))
+        "step-beta-anno")
+   (--> (v_1 : tau) v_2
+        (side-condition (judgment-holds (tred v_1 tau v_2)))
+        (where v_2 ,(first (judgment-holds (tred v_1 tau v))))
+        "step-anno-typed")
+   (--> (e_1 : tau) (e_2 : tau)
+        (side-condition (not (equal? '() (apply-reduction-relation step (term e_1)))))
+        (where e_2 ,(first (apply-reduction-relation step (term e_1))))
+        "step-anno")
+   (--> (e_1 e_2) (e_3 e_2)
+        (side-condition (not (equal? '() (apply-reduction-relation step (term e_1)))))
+        (where e_3 ,(first (apply-reduction-relation step (term e_1))))
+        "step-app-l")
+   (--> (v e_1) (v e_2)
+        (side-condition (not (equal? '() (apply-reduction-relation step (term e_1)))))
+        (where e_2 ,(first (apply-reduction-relation step (term e_1))))
+        "step-app-r")
+   (--> (e_1 doublecomma e_2) (e_3 doublecomma e_2)
+        (side-condition (not (equal? '() (apply-reduction-relation step (term e_1)))))
+        (where e_3 ,(first (apply-reduction-relation step (term e_1))))
+        "step-merge-l")
+   (--> (v doublecomma e_1) (v doublecomma e_2)
+        (side-condition (not (equal? '() (apply-reduction-relation step (term e_1)))))
+        (where e_2 ,(first (apply-reduction-relation step (term e_1))))
+        "step-mrege-r")
+   ))
+
+(define multi-step (compatible-closure step L e))
+(apply-reduction-relation* multi-step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4)))
+
+
+;; (apply-reduction-relation step (term (((lambda (x) x) : (int -> int)) 1)))
+;; (apply-reduction-relation step (term ((lambda (x) x) 1)))
