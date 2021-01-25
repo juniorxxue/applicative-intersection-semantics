@@ -4,6 +4,7 @@
 (provide L sub appsub infer check)
 
 (define-syntax-rule (draw x) (show-derivations (build-derivations x)))
+(define-syntax-rule (holds x) (judgment-holds x))
 
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
@@ -188,4 +189,56 @@
    (disjoint tau_1 tau_3)
    ---------------------------------- "disjoint-and-r"
    (disjoint tau_1 (tau_2 & tau_3))]
+  )
+
+(define-judgment-form L
+  #:mode (ordinary I)
+  #:contract (ordinary tau)
+  [---------------------------------- "ord-top"
+   (ordinary top)]
+  [---------------------------------- "ord-int"
+   (ordinary int)]
+  [---------------------------------- "ord-arrow"
+   (ordinary (tau_1 -> tau_2))])
+
+(define-judgment-form L
+  #:mode (toplike I)
+  #:contract (toplike tau)
+  [---------------------------------- "tl-top"
+   (toplike top)]
+  [(toplike tau_1)
+   (toplike tau_2)
+   ---------------------------------- "tl-and"
+   (toplike (tau_1 & tau_2))]
+  [(toplike tau_2)
+   ---------------------------------- "tl-arrow"
+   (toplike (tau_1 -> tau_2))]
+  )
+
+(define-judgment-form L
+  #:mode (tred I I O)
+  #:contract (tred e tau e)
+  [---------------------------------- "tred-int"
+                                      (tred number int number)]
+  [(ordinary tau)
+   (toplike tau)
+   ---------------------------------- "tred-top"
+   (tred e tau top)]
+  [(side-condition (not (judgment-holds (toplike tau_3))))
+   (sub tau_3 tau_1)
+   (sub tau_2 tau_4)
+   ---------------------------------- "tred-arr-anno"
+   (tred ((lambda (x) e) : (tau_1 -> tau_2)) (tau_3 -> tau_4) ((lambda x e) : (tau_1 -> tau_4)))]
+  [(tred e_1 tau e_3)
+   (ordinary tau)
+   ---------------------------------- "tred-merge-l"
+   (tred (e_1 doublecomma e_2) tau e_3)]
+  [(tred e_2 tau e_3)
+   (ordinary tau)
+   ---------------------------------- "tred-merge-r"
+   (tred (e_1 doublecomma e_2) tau e_3)]
+  [(tred e_1 tau_1 e_2)
+   (tred e_1 tau_2 e_3)
+   ---------------------------------- "tred-and"
+   (tred e_1 (tau_1 & tau_2) (e_2 doublecomma e_3))]
   )
