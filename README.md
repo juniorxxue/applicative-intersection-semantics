@@ -1,4 +1,4 @@
-# # Applicative Intersection Type
+# Applicative Intersection Types
 
 ## Style Guide
 
