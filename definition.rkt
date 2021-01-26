@@ -9,7 +9,7 @@
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
   (e ::= number top false true x (lambda (x) e) (e e) (e doublecomma e) (e : tau));; doublecomma for merge operator
-  (v ::= number top false true (lambda (x) e) (e doublecomma e))
+  (v ::= number top false true (lambda (x) e) ((lambda (x) e) : (tau -> tau)) (e doublecomma e))
   (tau ::= int bool top (tau -> tau) (tau & tau)) ;; & for intersection types
   (Gamma ::= empty (Gamma comma x : tau)) ;; ctx
   (Psi ::= empty (Psi comma tau)) ;; stack of args
@@ -220,7 +220,7 @@
   #:mode (tred I I O)
   #:contract (tred e tau e)
   [---------------------------------- "tred-int"
-                                      (tred number int number)]
+   (tred number int number)]
   [(ordinary tau)
    (toplike tau)
    ---------------------------------- "tred-top"
@@ -229,7 +229,7 @@
    (sub tau_3 tau_1)
    (sub tau_2 tau_4)
    ---------------------------------- "tred-arr-anno"
-   (tred ((lambda (x) e) : (tau_1 -> tau_2)) (tau_3 -> tau_4) ((lambda x e) : (tau_1 -> tau_4)))]
+   (tred ((lambda (x) e) : (tau_1 -> tau_2)) (tau_3 -> tau_4) ((lambda (x) e) : (tau_1 -> tau_4)))]
   [(tred e_1 tau e_3)
    (ordinary tau)
    ---------------------------------- "tred-merge-l"
@@ -259,7 +259,7 @@
         "step-beta-anno")
    (--> (v_1 : tau) v_2
         (side-condition (judgment-holds (tred v_1 tau v_2)))
-        (where v_2 ,(first (judgment-holds (tred v_1 tau v))))
+        (where v_2 ,(first (judgment-holds (tred v_1 tau v) v)))
         "step-anno-typed")
    (--> (e_1 : tau) (e_2 : tau)
         (side-condition (not (equal? '() (apply-reduction-relation step (term e_1)))))
@@ -285,6 +285,7 @@
 
 (define multi-step (compatible-closure step L e))
 (apply-reduction-relation* multi-step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4)))
+(apply-reduction-relation* multi-step (term (((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) : (int -> int) ) 4)))
 
 
 ;; (apply-reduction-relation step (term (((lambda (x) x) : (int -> int)) 1)))
