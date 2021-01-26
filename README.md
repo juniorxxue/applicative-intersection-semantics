@@ -281,7 +281,7 @@ e1 --> e1'
 e1 e2 --> e1' e2
 
 e2 --> e2'
------------------- Step-App-R
+------------------- Step-App-R
 v e2 --> v e2'
 
 e1 --> e1'
@@ -295,26 +295,36 @@ v,,e2 --> v,,e2'
 
 ## Small-Step Reduction (value with anno)
 
+Notes : my system can type check `(lambda x x) 4`
+
 ```
 --------------
 e --> e'
 --------------
 
+
+----------------------- Step-App-Top
+(T : Top) v --> (T : Top)
+
 ----------------------- Step-Int
 n --> n : Int
 
+----------------------- Step-Top
+T --> T : Top
+
 p -->A p'
 ------------------------------------------------ Step-Beta-Anno
-((\x . e) : A -> B) p  --> (e [x |-> p']) : B
+((\x . e) : A -> B) p  --> (e [x |-> (p' : A)]) : B
 
 
 ---------------------------- Step-Beta
-(\x . e) p --> (e [x -> p])
+(\x . e) v --> (e [x -> v])
 
 p -->A p'
--------------------- Step-Anno-Typed
+-------------------- Step-Anno-Typed (infinite loop beacuse 1 : int --> 1 : int) 
 p : A -> p' : A
 
+not (value (e : A)
 e --> e'
 -------------------- Step-Anno
 e : A --> e' : A
@@ -333,7 +343,5 @@ e1,,e2 --> e1',,e2
 
 e2 --> e2'
 ------------------- Step-Merge-R
-v,,e2 --> v,,e2'
-
+v,,e2 --> v,,e2'w
 ```
-
