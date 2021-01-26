@@ -1,5 +1,7 @@
 # Applicative Intersection Types
 
+Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs.d/blob/master/utils/prettify-redex.el) in emacs, so Redex code may look werid to you :)
+
 ## Style Guide
 
 ```haskell
@@ -147,6 +149,24 @@ T |- e1 => A   T |- e2 => B
 T |- e1 ,, e2 => A & B
 ```
 
+```
+
+
+
+
+not (int -> bool -> int)   (int -> bool)
+not (int -> bool) <: (int -> any)
+
+
+
+                        ----------------------------------------------------------------------- TLam2
+.|- true => bool         .;., int, bool |- (\b . succ) => bool -> B
+                     ------------------------------------------------------------------------- TApp1
+.|- 1 => int         .; ., int |- (\b . succ) true => int -> B
+-------------------------------------------------------------------------------------------- TApp1
+. ; . |- ((\b . succ) true) 1 => B
+```
+
 ## Ordinary
 
 ```
@@ -224,7 +244,15 @@ e1 -->B e3
 e1 -->(A & B) e2,,e3
 ```
 
-## Step
+```
+
+
+
+----------------------------------------------------------------------
+(f : int -> int ,, g : bool -> bool)  --> (bool -> bool)
+```
+
+## Small-Step Reduction
 
 ```
 --------------
@@ -233,8 +261,8 @@ e --> e'
 
 v here satisfies value v
 
------------------ Step-Top
-Top v -> Top
+----------------- Step-Top (?)
+Top v --> Top
 
 v -->A v'
 ------------------------------------------------ Step-Beta-Anno
@@ -264,3 +292,48 @@ e2 --> e2'
 ------------------- Step-Merge-R
 v,,e2 --> v,,e2'
 ```
+
+## Small-Step Reduction (value with anno)
+
+```
+--------------
+e --> e'
+--------------
+
+----------------------- Step-Int
+n --> n : Int
+
+p -->A p'
+------------------------------------------------ Step-Beta-Anno
+((\x . e) : A -> B) p  --> (e [x |-> p']) : B
+
+
+---------------------------- Step-Beta
+(\x . e) p --> (e [x -> p])
+
+p -->A p'
+-------------------- Step-Anno-Typed
+p : A -> p' : A
+
+e --> e'
+-------------------- Step-Anno
+e : A --> e' : A
+
+e1 --> e1'
+------------------ Step-App-L
+e1 e2 --> e1' e2
+
+e2 --> e2'
+------------------ Step-App-R
+v e2 --> v e2'
+
+e1 --> e1'
+------------------- Step-Merge-L
+e1,,e2 --> e1',,e2
+
+e2 --> e2'
+------------------- Step-Merge-R
+v,,e2 --> v,,e2'
+
+```
+
