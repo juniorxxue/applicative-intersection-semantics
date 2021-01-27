@@ -5,11 +5,14 @@
 
 (define-syntax-rule (draw x) (show-derivations (build-derivations x)))
 (define-syntax-rule (holds x) (judgment-holds x))
+(define-syntax-rule (reduce x) (apply-reduction-relation step (term x)))
+(define-syntax-rule (reduces x) (apply-reduction-relation* step (term x)))
 
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
   (e ::= number top false true x (lambda (x) e) (e e) (e doublecomma e) (e : tau));; doublecomma for merge operator
-  (v ::= number top false true (lambda (x) e) ((lambda (x) e) : (tau -> tau)) (e doublecomma e))
+  (p ::= number top false true (lambda (x) e) ((lambda (x) e) : (tau -> tau)) (e doublecomma e))
+  (v ::= (p : tau) (lambda (x) e))
   (tau ::= int bool top (tau -> tau) (tau & tau)) ;; & for intersection types
   (Gamma ::= empty (Gamma comma x : tau)) ;; ctx
   (Psi ::= empty (Psi comma tau)) ;; stack of args
@@ -77,6 +80,12 @@
   stack-type : Psi tau -> tau
   [(stack-type empty tau_1) tau_1]
   [(stack-type (Psi comma tau_1) tau_2) (tau_1 -> (stack-type Psi tau_2))])
+
+
+;; (define-metafunction L
+;;   stack-to-type : Psi -> tau
+;;   [(stack-to-type empty) ]
+;;   )
 
 ;; modify the rules of andl, andr
 (define-judgment-form L
@@ -249,20 +258,27 @@
    L
    #:domain e
    #:codomain e
-   (--> (top v) top
-        "step-top")
+   (--> number (number : int)
+        "step-int-anno")
+   (--> true (true : bool)
+        "step-true-anno")
+   (--> false (false : bool)
+        "step-false-anno")
+   (--> top (top : top)
+        "step-top-anno")
    (--> ((lambda (x) e) v) (substitute e x v)
         "step-beta")
    (--> (((lambda (x) e_1) : (tau_1 -> tau_2)) v_1) ((substitute e_1 x v_2) : tau_2)
         (side-condition (judgment-holds (tred v_1 tau_1 v_2)))
         (where v_2 ,(first (judgment-holds (tred v_1 tau_1 v) v)))
         "step-beta-anno")
-   (--> (v_1 : tau) v_2
-        (side-condition (judgment-holds (tred v_1 tau v_2)))
-        (where v_2 ,(first (judgment-holds (tred v_1 tau v) v)))
+   (--> (p_1 : tau) (p_2 : tau)
+        (side-condition  (judgment-holds (tred p_1 tau p_2)))
+        (where p_2 ,(first (judgment-holds (tred p_1 tau p) p)))
         "step-anno-typed")
    (--> (e_1 : tau) (e_2 : tau)
-        (side-condition (not (equal? '() (apply-reduction-relation step (term e_1)))))
+        (side-condition (and (not (equal? '() (apply-reduction-relation step (term e_1))))
+                             (equal? #f (redex-match L v (term (e_1 : tau))))))
         (where e_2 ,(first (apply-reduction-relation step (term e_1))))
         "step-anno")
    (--> (e_1 e_2) (e_3 e_2)
@@ -283,10 +299,9 @@
         "step-mrege-r")
    ))
 
-(define multi-step (compatible-closure step L e))
-(apply-reduction-relation* multi-step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4)))
-(apply-reduction-relation* multi-step (term (((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) : (int -> int) ) 4)))
-
+;; (define multi-step (compatible-closure step L e))
+;; (apply-reduction-relation* multi-step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4)))
+;; (apply-reduction-relation* multi-step (term (((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) : (int -> int) ) 4)))
 
 ;; (apply-reduction-relation step (term (((lambda (x) x) : (int -> int)) 1)))
 ;; (apply-reduction-relation step (term ((lambda (x) x) 1)))
