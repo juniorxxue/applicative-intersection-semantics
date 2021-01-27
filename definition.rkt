@@ -11,8 +11,8 @@
 (define-language L
   (x ::= variable-not-otherwise-mentioned)
   (e ::= number top false true x (lambda (x) e) (e e) (e doublecomma e) (e : tau));; doublecomma for merge operator
-  (p ::= number top false true (lambda (x) e) ((lambda (x) e) : (tau -> tau)) (e doublecomma e))
-  (v ::= (p : tau) (lambda (x) e))
+  (p ::= number top false true (lambda (x) e) ((lambda (x) e) : (tau -> tau)))
+  (v ::= (p : tau) (lambda (x) e) (v doublecomma v))
   (tau ::= int bool top (tau -> tau) (tau & tau)) ;; & for intersection types
   (Gamma ::= empty (Gamma comma x : tau)) ;; ctx
   (Psi ::= empty (Psi comma tau)) ;; stack of args
@@ -273,7 +273,8 @@
         (where v_2 ,(first (judgment-holds (tred v_1 tau_1 v) v)))
         "step-beta-anno")
    (--> (p_1 : tau) (p_2 : tau)
-        (side-condition  (judgment-holds (tred p_1 tau p_2)))
+        (side-condition  (and (judgment-holds (tred p_1 tau p_2))
+                              (equal? #f (redex-match L v (term (p_1 : tau))))))
         (where p_2 ,(first (judgment-holds (tred p_1 tau p) p)))
         "step-anno-typed")
    (--> (e_1 : tau) (e_2 : tau)

@@ -55,23 +55,29 @@ A <: B     (Subtyping, rule form)
 
 Int <: Int         S-Int
 
+
 A <: Top           S-Top
+
 
 Top <: D
 ----------------   S-TopArr
 A <: C -> D
 
+
 C <: A    B <: D
 ----------------   S-Arrow
 A -> B <: C -> D
+
 
 A <: B    A <: C
 ----------------   S-And
 A <: B & C
 
+
 A <: C
 ----------         S-AndL
 A & B <: C
+
 
 B <: C
 ----------         S-AndR
@@ -87,13 +93,16 @@ S |- A <: B
 
 . |- A <: A    AS-Refl
 
+
 C <: A      S |- B <: D
 ------------------------ AS-Fun
 S, C |- A -> B <: C -> D
 
+
 S |- A <: D
 ------------------------ AS-AndL
 S |- A & B <: D
+
 
 S |- B <: D
 ------------------------ AS-AndR
@@ -116,33 +125,41 @@ T |- e => A   ==   T; . |- e => A
 ------------ TInt
 T |- n => Int
 
+
 |- T   x : A \in T
 --------------------- TVar
 T |- x => A
+
 
 T, x : A |- e <= B
 ----------------------------- TLam1
 T |- \x. e <= A -> B
 
+
 T, x : A ; S |- e => B
 ------------------------------ TLam2
 T ; S, A |- \x. e => A -> B
+
 
 S |- A <: B    T |- e <= A
 ----------------------------- TAnn
 T ; S |- e : A => B
 
+
 T |- e2 => A   T ; S, A |- e1 => A -> B
 ----------------------------------------- TApp1
 T ; S |- e1 e2 => B
+
 
 T |- e2 => A    T |- e1 <= A -> B
 ----------------------------------- TApp2
 T |- e1 e2 <= B
 
+
 T |- e => B     B <: A
 ------------------------- TSub
 T |- e <= A
+
 
 T |- e1 => A   T |- e2 => B
 ----------------------------- TMerge
@@ -177,8 +194,10 @@ Ordinary A
 ------------------ Ord-Top
 Ordinary Top
 
+
 ------------------ Ord-Int
 Ordinary Int
+
 
 ------------------ Ord-Arrow
 Ordinary (A -> B)
@@ -194,10 +213,12 @@ TopLike A
 --------------------- TL-Top
 TopLike Top
 
+
 TopLike A
 TopLike B
 --------------------- TL-And
 TopLike (A & B)
+
 
 TopLike B
 -------------------- TL-Arrow
@@ -217,10 +238,12 @@ e -->A e'
 ------------------ Tred-Int
 n -->Int n
 
+
 Ordinary A
 TopLike A
 ------------------- Tred-Top
 e -->A T
+
 
 not (TopLike C)
 C <: A
@@ -228,15 +251,18 @@ B <: D
 -------------------------------------------- Tred-Arrow-Annotated
 (\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
 
+
 e1 -->A e1'
 Ordinary A
 ---------------------------- Tred-Merge-L
 e1,,e2 -->A e1'
 
+
 e2 -->A e2'
 Ordinary A
 ---------------------------- Tred-Merge-R
 e1,,e2 -->A e2'
+
 
 e1 -->A e2
 e1 -->B e3
@@ -261,32 +287,40 @@ e --> e'
 
 v here satisfies value v
 
+
 ----------------- Step-Top (?)
 Top v --> Top
+
 
 v -->A v'
 ------------------------------------------------ Step-Beta-Anno
 ((\x . e1) : A -> B) v  --> (e1 [x |-> v']) : B
 
+
 v -->A v'
 ------------------- Step-Anno-Typed
 v : A --> v'
+
 
 e --> e'
 -------------------- Step-Anno
 e : A --> e' : A
 
+
 e1 --> e1'
 ------------------ Step-App-L
 e1 e2 --> e1' e2
+
 
 e2 --> e2'
 ------------------- Step-App-R
 v e2 --> v e2'
 
+
 e1 --> e1'
 ------------------- Step-Merge-L
 e1,,e2 --> e1',,e2
+
 
 e2 --> e2'
 ------------------- Step-Merge-R
@@ -306,42 +340,53 @@ e --> e'
 ----------------------- Step-App-Top
 (T : Top) v --> (T : Top)
 
+
 ----------------------- Step-Int
 n --> n : Int
 
+
 ----------------------- Step-Top
 T --> T : Top
+
 
 p -->A p'
 ------------------------------------------------ Step-Beta-Anno
 ((\x . e) : A -> B) p  --> (e [x |-> (p' : A)]) : B
 
 
+
 ---------------------------- Step-Beta
 (\x . e) v --> (e [x -> v])
 
+
 p -->A p'
+not (value (e : A)
 -------------------- Step-Anno-Typed (infinite loop beacuse 1 : int --> 1 : int) 
 p : A -> p' : A
+
 
 not (value (e : A)
 e --> e'
 -------------------- Step-Anno
 e : A --> e' : A
 
+
 e1 --> e1'
 ------------------ Step-App-L
 e1 e2 --> e1' e2
+
 
 e2 --> e2'
 ------------------ Step-App-R
 v e2 --> v e2'
 
+
 e1 --> e1'
 ------------------- Step-Merge-L
 e1,,e2 --> e1',,e2
 
+
 e2 --> e2'
 ------------------- Step-Merge-R
-v,,e2 --> v,,e2'w
+v,,e2 --> v,,e2'
 ```
