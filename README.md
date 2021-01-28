@@ -2,6 +2,19 @@
 
 Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs.d/blob/master/utils/prettify-redex.el) in emacs, so Redex code may look werid to you :)
 
+## Table of Contents
+
+   * [Applicative Intersection Types](#applicative-intersection-types)
+      * [Style Guide](#style-guide)
+      * [Syntax](#syntax)
+      * [Reduction](#reduction)
+      * [Subtyping](#subtyping)
+      * [Application Subtyping](#application-subtyping)
+      * [Typing](#typing)
+      * [Ordinary](#ordinary)
+      * [TopLike](#toplike)
+      * [Typed Reduction](#typed-reduction)
+
 ## Style Guide
 
 ```haskell
@@ -32,7 +45,7 @@ lambda (x) x : Int -> Int
 (succ ,, not) 4
 -- (draw (check empty empty ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4) <= int))
 
--- would it bother to implement, if we use a check here
+-- would it bother to implement, if we use a check here?
 ```
 
 ## Syntax
@@ -84,17 +97,18 @@ S ::= . | S, A
 --> ((\x . x) : (Int -> Int)) (4 : Int)
 
 -- (f : Int -> Int) ,, (g : Bool -> Bool) 
--- for a merged function
--- we need infer its type
+-- for a merged function, it's already a value
 succ ,, not
---> succ ,, not : (Int -> Int) & (Bool -> Bool)
 
 -- for application with a merged function
+
+-- by meta-function we already have
+-- 1) succ ,, not -->(Int -> Int) succ
+-- 2) Int | (Int -> Int) & (Bool -> Bool) <: Int -> Int
+
 succ ,, not 4
---> succ ,, not (4 : Int) 
---> (succ ,, not : (Int -> Int) & (Bool -> Bool) (4 : Int)
--- . , Int | (Int -> Int) & (Bool -> Bool) <: Int -> Int
---> (succ ,, not : (Int -> Int)) (4 : Int)
+--> succ ,, not (4 : Int)
+--> succ (4 : Int)
 ```
 
 ### Rules
@@ -113,12 +127,19 @@ n --> n : Int
 
 
 A |- typeof (v1 ,, v2) <: B
------------------------------------------------ Step-Merge (to trigger Step-Beta-Anno)
-(v1 ,, v2) (p : A) --> ((v1 ,, v2) : B) (p : A)
+v1 ,, v2 -->B v1
+----------------------------------------------- Step-Merge-L
+(v1 ,, v2) (p : A) --> v1 (p : A)
+
+
+A |- typeof (v1 ,, v2) <: B
+v1 ,, v2 -->B v2
+----------------------------------------------- Step-Merge-L
+(v1 ,, v2) (p : A) --> v2 (p : A)
 
 
 v -->A v'
------------------------------------------------- Step-Beta-Anno (to trigger typed reduction)
+------------------------------------------------ Step-Beta-Anno
 ((\x . e1) : A -> B) v  --> (e1 [x |-> v']) : B
 
 
@@ -263,20 +284,16 @@ T |- e1 ,, e2 => A & B
 ```
 
 ```
-
-
-
-
 not (int -> bool -> int)   (int -> bool)
 not (int -> bool) <: (int -> any)
 
 
 
-                        ----------------------------------------------------------------------- TLam2
+                        ---------------------------------------------------- TLam2
 .|- true => bool         .;., int, bool |- (\b . succ) => bool -> B
-                     ------------------------------------------------------------------------- TApp1
+                     -------------------------------------------------------------------- TApp1
 .|- 1 => int         .; ., int |- (\b . succ) true => int -> B
--------------------------------------------------------------------------------------------- TApp1
+--------------------------------------------------------------------------------------- TApp1
 . ; . |- ((\b . succ) true) 1 => B
 ```
 
@@ -338,7 +355,6 @@ Ordinary Int
 ------------------------------------------
 (1 : Int) ,, (true : Bool) -->Int  1 : Int
 
--- 
 
 1 : Int -->Int 1 : Int
 1 : Int -->Int 1 : Int
@@ -356,8 +372,6 @@ Ordinary Int
 (guess (tred (1 : int) (int & int) v) v)
 ;; => '(((1 : int) doublecomma (1 : int)))
 ```
-
-
 
 ### Rules
 
@@ -400,117 +414,4 @@ e1 -->A e2
 e1 -->B e3
 ---------------------- Tred-And
 e1 -->(A & B) e2,,e3
-```
-
-## Small-Step Reduction
-
-```
---------------
-e --> e'
---------------
-
-v here satisfies value v
-
-
------------------ Step-Top (?)
-Top v --> Top
-
-
-v -->A v'
------------------------------------------------- Step-Beta-Anno
-((\x . e1) : A -> B) v  --> (e1 [x |-> v']) : B
-
-
-v -->A v'
-------------------- Step-Anno-Typed
-v : A --> v'
-
-
-e --> e'
--------------------- Step-Anno
-e : A --> e' : A
-
-
-e1 --> e1'
------------------- Step-App-L
-e1 e2 --> e1' e2
-
-
-e2 --> e2'
-------------------- Step-App-R
-v e2 --> v e2'
-
-
-e1 --> e1'
-------------------- Step-Merge-L
-e1,,e2 --> e1',,e2
-
-
-e2 --> e2'
-------------------- Step-Merge-R
-v,,e2 --> v,,e2'
-```
-
-## Small-Step Reduction (value with anno)
-
-Notes : my system can type check `(lambda x x) 4`
-
-```
---------------
-e --> e'
---------------
-
-
-------------------------- Step-App-Top
-(T : Top) v --> (T : Top)
-
-
------------------------ Step-Int
-n --> n : Int
-
-
------------------------ Step-Top
-T --> T : Top
-
-
-p -->A p'
------------------------------------------------- Step-Beta-Anno
-((\x . e) : A -> B) p  --> (e [x |-> (p' : A)]) : B
-
-
-
----------------------------- Step-Beta
-(\x . e) v --> (e [x -> v])
-
-
-p -->A p'
-not (value (p : A))
--------------------- Step-Anno-Typed
-p : A -> p' : A
-
-
-not (value (e : A))
-e --> e'
--------------------- Step-Anno
-e : A --> e' : A
-
-
-e1 --> e1'
------------------- Step-App-L
-e1 e2 --> e1' e2
-
-
-e2 --> e2'
------------------- Step-App-R
-v e2 --> v e2'
-
-
-e1 --> e1'
-------------------- Step-Merge-L
-e1,,e2 --> e1',,e2
-
-
-e2 --> e2'
-------------------- Step-Merge-R
-v,,e2 --> v,,e2'
 ```
