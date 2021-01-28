@@ -37,13 +37,109 @@ lambda (x) x : Int -> Int
 
 ## Syntax
 
+### Examples
+
+```haskell
+true : Bool is a value
+1 : Int is a value
+ture : Bool ,, 1 : Int is a value
+
+f : Int -> Int is a value
+g : Bool -> Bool is a value
+f : Int -> Int ,, g : Bool -> Bool is a value
+
+-- value of merge can be seen as merges of primitive (p : A)
+```
+
+### Rules
+
 ```
 A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
-p ::= T | n | \x . e | e1,,e2
-v ::= p : A | \x . e
+p ::= T | n | \x . e
+v ::= p : A | \x . e | v1,,v2
 T ::= . | T, x : A
 S ::= . | S, A
+```
+
+## Reduction
+
+### Examples
+
+```haskell
+(\x . x)
+
+(\x . x) 4
+--> (\x . x) (4 : Int)
+--> (4 : Int)
+
+-- it may have the option (that may be a intuitive one)
+-- the problem is
+-- system can type check (\x . x) 4
+-- while cannot type check (\x . x)
+-- so we consider it a special rule
+(\x . x) 4
+--> (\x . x) (4 : Int)
+--> ((\x . x) : (guess Int)) (4 : Int)
+--> ((\x . x) : (Int -> Int)) (4 : Int)
+
+-- (f : Int -> Int) ,, (g : Bool -> Bool) 
+-- for a merged function
+-- we need infer its type
+succ ,, not
+--> succ ,, not : (Int -> Int) & (Bool -> Bool)
+
+-- for application with a merged function
+succ ,, not 4
+--> succ ,, not (4 : Int) 
+--> (succ ,, not : (Int -> Int) & (Bool -> Bool) (4 : Int)
+-- . , Int | (Int -> Int) & (Bool -> Bool) <: Int -> Int
+--> (succ ,, not : (Int -> Int)) (4 : Int)
+```
+
+### Rules
+
+```
+-------------
+e --> e'
+-------------
+
+----------------------- Step-Int
+n --> n : Int
+
+
+---------------------------- Step-Beta
+(\x . e) v --> (e [x -> v])
+
+
+A |- typeof (v1 ,, v2) <: B
+----------------------------------------------- Step-Merge (to trigger Step-Beta-Anno)
+(v1 ,, v2) (p : A) --> ((v1 ,, v2) : B) (p : A)
+
+
+v -->A v'
+------------------------------------------------ Step-Beta-Anno (to trigger typed reduction)
+((\x . e1) : A -> B) v  --> (e1 [x |-> v']) : B
+
+
+e1 --> e1'
+------------------ Step-App-L
+e1 e2 --> e1' e2
+
+
+e2 --> e2'
+------------------ Step-App-R
+v e2 --> v e2'
+
+
+e1 --> e1'
+------------------- Step-Merge-L
+e1,,e2 --> e1',,e2
+
+
+e2 --> e2'
+------------------- Step-Merge-R
+v,,e2 --> v,,e2'
 ```
 
 ## Subtyping
@@ -229,53 +325,66 @@ TopLike (A -> B)
 
 ## Typed Reduction
 
+### Examples
+
+```haskell
+1 : Int -->Int 1 : Int
+\x . x : Int -> Int  -->(Int -> Top) \x . x : Int -> Top
+
+-- merge case
+
+1 : Int -->Int 1 : Int
+Ordinary Int
+------------------------------------------
+(1 : Int) ,, (true : Bool) -->Int  1 : Int
+
+1 : Int -->Int 1 : Int
+1 : Int -->Int 1 : Int
+--------------------------------------------
+1 : Int -->(Int & Int) (1 : Int) ,, (1 : Int)
 ```
---------------
-e -->A e'
---------------
+
+### Rules
+
+```
+------------------
+p : A -->A p' : A
+------------------
 
 
------------------- Tred-Int
-n -->Int n
+------------------ Tred-Int-Anno
+n : Int -->Int n : Int
 
 
 Ordinary A
 TopLike A
 ------------------- Tred-Top
-e -->A T
+e : A -->A T : Top
 
 
 not (TopLike C)
 C <: A
 B <: D
--------------------------------------------- Tred-Arrow-Annotated
+----------------------------------------------------- Tred-Arrow-Annotated
 (\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
 
 
 e1 -->A e1'
 Ordinary A
 ---------------------------- Tred-Merge-L
-e1,,e2 -->A e1'
+e1,,e2 : A -->A e1' : A
 
 
 e2 -->A e2'
 Ordinary A
 ---------------------------- Tred-Merge-R
-e1,,e2 -->A e2'
+e1,,e2 : A -->A e2' : A
 
 
 e1 -->A e2
 e1 -->B e3
 ---------------------- Tred-And
 e1 -->(A & B) e2,,e3
-```
-
-```
-
-
-
-----------------------------------------------------------------------
-(f : int -> int ,, g : bool -> bool)  --> (bool -> bool)
 ```
 
 ## Small-Step Reduction
@@ -337,7 +446,7 @@ e --> e'
 --------------
 
 
------------------------ Step-App-Top
+------------------------- Step-App-Top
 (T : Top) v --> (T : Top)
 
 
@@ -360,12 +469,12 @@ p -->A p'
 
 
 p -->A p'
-not (value (e : A)
--------------------- Step-Anno-Typed (infinite loop beacuse 1 : int --> 1 : int) 
+not (value (p : A))
+-------------------- Step-Anno-Typed
 p : A -> p' : A
 
 
-not (value (e : A)
+not (value (e : A))
 e --> e'
 -------------------- Step-Anno
 e : A --> e' : A
