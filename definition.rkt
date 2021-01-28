@@ -5,6 +5,7 @@
 
 (define-syntax-rule (draw x) (show-derivations (build-derivations x)))
 (define-syntax-rule (holds x) (judgment-holds x))
+(define-syntax-rule (guess x y) (judgment-holds x y))
 (define-syntax-rule (reduce x) (apply-reduction-relation step (term x)))
 (define-syntax-rule (reduces x) (apply-reduction-relation* step (term x)))
 
@@ -227,13 +228,17 @@
 
 (define-judgment-form L
   #:mode (tred I I O)
-  #:contract (tred e tau e)
+  #:contract (tred v tau v)
   [---------------------------------- "tred-int"
-   (tred number int number)]
+   (tred (number : int) int (number : int))]
+  [---------------------------------- "tred-true"
+   (tred (true : bool) bool (true : bool))]
+  [---------------------------------- "tred-false"
+   (tred (false : bool) bool (false : bool))]
   [(ordinary tau)
    (toplike tau)
    ---------------------------------- "tred-top"
-   (tred e tau top)]
+   (tred (e : tau) tau (top : top))]
   [(side-condition (not (judgment-holds (toplike tau_3))))
    (sub tau_3 tau_1)
    (sub tau_2 tau_4)

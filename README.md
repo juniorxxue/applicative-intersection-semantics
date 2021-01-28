@@ -338,17 +338,32 @@ Ordinary Int
 ------------------------------------------
 (1 : Int) ,, (true : Bool) -->Int  1 : Int
 
+-- 
+
 1 : Int -->Int 1 : Int
 1 : Int -->Int 1 : Int
 --------------------------------------------
 1 : Int -->(Int & Int) (1 : Int) ,, (1 : Int)
 ```
 
+```scheme
+(guess (tred (1 : int) int v) v)
+;; => '((1 : int))
+
+(guess (tred ((1 : int) doublecomma (true : bool)) int v) v)
+;; => '((1 : int))
+
+(guess (tred (1 : int) (int & int) v) v)
+;; => '(((1 : int) doublecomma (1 : int)))
+```
+
+
+
 ### Rules
 
 ```
 ------------------
-p : A -->A p' : A
+v-->A v'
 ------------------
 
 
@@ -372,13 +387,13 @@ B <: D
 e1 -->A e1'
 Ordinary A
 ---------------------------- Tred-Merge-L
-e1,,e2 : A -->A e1' : A
+e1,,e2 -->A e1'
 
 
 e2 -->A e2'
 Ordinary A
 ---------------------------- Tred-Merge-R
-e1,,e2 : A -->A e2' : A
+e1,,e2 -->A e2'
 
 
 e1 -->A e2
