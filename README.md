@@ -4,16 +4,15 @@ Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs
 
 ## Table of Contents
 
-   * [Applicative Intersection Types](#applicative-intersection-types)
-      * [Style Guide](#style-guide)
-      * [Syntax](#syntax)
-      * [Reduction](#reduction)
-      * [Subtyping](#subtyping)
-      * [Application Subtyping](#application-subtyping)
-      * [Typing](#typing)
-      * [Ordinary](#ordinary)
-      * [TopLike](#toplike)
-      * [Typed Reduction](#typed-reduction)
+* [Style Guide](#style-guide)
+* [Syntax](#syntax)
+* [Reduction](#reduction)
+* [Subtyping](#subtyping)
+* [Application Subtyping](#application-subtyping)
+* [Typing](#typing)
+* [Ordinary](#ordinary)
+* [TopLike](#toplike)
+* [Typed Reduction](#typed-reduction)
 
 ## Style Guide
 
