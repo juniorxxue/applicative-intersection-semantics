@@ -79,13 +79,12 @@ S ::= . | S, A
 ### Examples
 
 ```haskell
-(\x . x)
-
 (\x . x) 4
 --> (\x . x) (4 : Int)
 --> (4 : Int)
 
--- it may have the option (that may be a intuitive one)
+------- Another option (already discarded) --------------
+-- (that may be a intuitive one)
 -- the problem is
 -- system can type check (\x . x) 4
 -- while cannot type check (\x . x)
@@ -94,6 +93,8 @@ S ::= . | S, A
 --> (\x . x) (4 : Int)
 --> ((\x . x) : (guess Int)) (4 : Int)
 --> ((\x . x) : (Int -> Int)) (4 : Int)
+------- Another option (already discarded) --------------
+
 
 -- (f : Int -> Int) ,, (g : Bool -> Bool) 
 -- for a merged function, it's already a value
@@ -109,9 +110,23 @@ succ ,, not 4
 --> succ ,, not (4 : Int)
 --> succ (4 : Int)
 
-(f : int -> int) ,, (g : int -> bool) :  int -> bool
--- we need typed reduction here
---> f : int -> bool -- step-anno-merge-r
+(f : Int -> Int) ,, (g : Int -> Bool) :  Int -> Bool
+--> f : Int -> Bool -- step-anno-value
+
+-------------- werid case 1 ---------------------------
+(1 : Int) : (Int & Int) -- works fine
+--> 1 : Int ,, 1 : Int
+
+1 : Int & Int
+
+1 : (Int & Int) -- will be considered as a value
+1 : (Int & Int)
+--> 1 : Int : (Int & Int)
+-- consider make p : A -->A p' : A
+-- 1 : Int --> (1 : Int) : Int --> ((1 : Int) : Int) : Int
+
+1 : Int & Int
+-------------- werid case 1 ------------------------------
 ```
 
 ```scheme
@@ -126,6 +141,12 @@ succ ,, not 4
 ![](imgs/reduce_1.png)
 
 ![](imgs/reduce_2.png)
+
+![](imgs/reduce_3.png)
+
+![](imgs/reduce_4.png)
+
+![](imgs/reduce_5.png)
 
 ### Rules
 
@@ -415,7 +436,7 @@ n : Int -->Int n : Int
 Ordinary A
 TopLike A
 ------------------- Tred-Top
-e : A -->A T : Top
+e -->A (T : Top)
 
 
 not (TopLike C)

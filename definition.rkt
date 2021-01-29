@@ -238,7 +238,7 @@
   [(ordinary tau)
    (toplike tau)
    ---------------------------------- "tred-top"
-   (tred (e : tau) tau (top : top))]
+   (tred e tau (top : top))]
   [(side-condition (not (judgment-holds (toplike tau_3))))
    (sub tau_3 tau_1)
    (sub tau_2 tau_4)
