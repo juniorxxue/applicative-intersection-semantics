@@ -108,11 +108,18 @@ succ ,, not
 succ ,, not 4
 --> succ ,, not (4 : Int)
 --> succ (4 : Int)
+
+(f : int -> int) ,, (g : int -> bool) :  int -> bool
+-- we need typed reduction here
+--> f : int -> bool -- step-anno-merge-r
 ```
 
 ```scheme
+;; redex code to justify
 (traces step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4)))
 (traces step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) true)))
+
+(traces step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (int -> bool))) : (int -> bool))))
 ```
 
 ![](imgs/reduce_1.png)
@@ -135,6 +142,16 @@ n --> n : Int
 v -->A v'
 ------------------------------------------------ Step-Beta-Anno
 ((\x . e1) : A -> B) v  --> (e1 [x |-> v'])
+
+
+v1 ,, v2 -->A v1
+----------------------------------------------- Step-Anno-Merge-L
+(v1 ,, v2) : A --> v1
+
+
+v1 ,, v2 -->A v2
+----------------------------------------------- Step-Anno-Merge-R
+(v1 ,, v2) : A --> v2
 
 
 A |- typeof (v1 ,, v2) <: B
