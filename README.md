@@ -110,6 +110,13 @@ succ ,, not 4
 --> succ (4 : Int)
 ```
 
+```scheme
+(traces step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4)))
+(traces step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) true)))
+```
+
+![](imgs/reduce_1.png)
+
 ### Rules
 
 ```
@@ -125,21 +132,21 @@ n --> n : Int
 (\x . e) v --> (e [x -> v])
 
 
+v -->A v'
+------------------------------------------------ Step-Beta-Anno
+((\x . e1) : A -> B) v  --> (e1 [x |-> v'])
+
+
 A |- typeof (v1 ,, v2) <: B
 v1 ,, v2 -->B v1
------------------------------------------------ Step-Merge-L
+----------------------------------------------- Step-App-Merge-L
 (v1 ,, v2) (p : A) --> v1 (p : A)
 
 
 A |- typeof (v1 ,, v2) <: B
 v1 ,, v2 -->B v2
------------------------------------------------ Step-Merge-L
+----------------------------------------------- Step-App-Merge-R
 (v1 ,, v2) (p : A) --> v2 (p : A)
-
-
-v -->A v'
------------------------------------------------- Step-Beta-Anno
-((\x . e1) : A -> B) v  --> (e1 [x |-> v']) : B
 
 
 e1 --> e1'
