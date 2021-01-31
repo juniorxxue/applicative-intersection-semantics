@@ -399,8 +399,8 @@ T |- e => B     B <: A
 T |- e <= A
 
 
-T |- e1 => A   T |- e2 => B
------------------------------ TMerge
+disjoint A B        T |- e1 => A   T |- e2 => B
+----------------------------------------------- TMerge
 T |- e1 ,, e2 => A & B
 ```
 
@@ -421,6 +421,45 @@ Ordinary Int
 
 ------------------ Ord-Arrow
 Ordinary (A -> B)
+```
+
+## Disjoint
+
+```
+-----------------
+Disjoint A B
+-----------------
+
+
+------------------- Disjoint-Top-L
+Disjoint Top A
+
+
+------------------- Disjoint-Top-R
+Disjoint A Top
+
+
+------------------------- Disjoint-Int-Arr
+Disjoint Int (A1 -> A2)
+
+
+------------------------- Disjoint-Arr-Int
+Disjoint (A1 -> A2) Int
+
+
+Disjoint B1 B2
+----------------------------- Disjoint-Arr-Arr
+Disjoint (A1 -> B1) (A2 -> B2)
+
+
+Disjoint A1 B       Disjoint A2 B
+------------------------------------ Disjoint-And-L
+Disjoint (A1 & A2) B
+
+
+Disjoint A B1       Disjoint A B2
+------------------------------------ Disjoint-And-R
+Disjoint A (B1 & B2)
 ```
 
 ## TopLike
