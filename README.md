@@ -6,13 +6,14 @@ Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs
 
 * [Style Guide](#style-guide)
 * [Syntax](#syntax)
-* [Reduction](#reduction)
 * [Subtyping](#subtyping)
 * [Application Subtyping](#application-subtyping)
+* [Typed Reduction](#typed-reduction)
+* [Reduction](#reduction)
 * [Typing](#typing)
 * [Ordinary](#ordinary)
+* [Disjoint](#disjoint)
 * [TopLike](#toplike)
-* [Typed Reduction](#typed-reduction)
 
 ## Style Guide
 
@@ -79,6 +80,228 @@ T ::= . | T, x : A
 S ::= . | S, A
 ```
 
+
+## Subtyping
+
+```
+------
+A <: B     (Subtyping, rule form)
+------
+
+Int <: Int         S-Int
+
+
+A <: Top           S-Top
+
+
+Top <: D
+----------------   S-TopArr
+A <: C -> D
+
+
+C <: A    B <: D
+----------------   S-Arrow
+A -> B <: C -> D
+
+
+A <: B    A <: C
+----------------   S-And
+A <: B & C
+
+
+A <: C
+----------         S-AndL
+A & B <: C
+
+
+B <: C
+----------         S-AndR
+A & B <: C
+```
+
+## Application Subtyping
+
+### Examples
+
+```
+about amiuguity
+
+--------- proposal one open ------------------
+
+S |- A <: D
+not (B <: S -> E)
+------------------------ AS-AndL
+S |- A & B <: D
+
+for arbitrary E, it's not algorithmic, denied
+
+--------- proposal one close ------------------
+
+--------- proposal two open ------------------
+
+S |- A <: D
+not (B <: S -> Top)
+------------------------ AS-AndL
+S |- A & B <: D
+
+S -> Top is top-like type,
+
+(string -> char) <: (int -> top) <- that's not what we want
+--------- proposal two close -------------------
+
+--------- proposal three open ------------------
+
+S |- A <: D
+not (S <: inputs(B))
+------------------------ AS-AndL
+S |- A & B <: D
+
+
+(f: Int -> Int ,, g : Int -> Bool) 4
+there's a ambiuguity above
+S is Int, B is Int -> Bool, so inputs(Int -> Int) is Int, that works
+
+But what if
+(f : Int -> (String -> Int) ,, g : Int -> (Char -> Int)) 4
+S is Int here
+inputs (Int -> (Char -> Int)) should be Int or Int -> Char?
+
+((f : Int -> (Char -> (String -> Int)) ,, g : Int -> (Char -> (String -> Bool)) 4) 'c'
+., Char, Int 
+S is probably Int -> Char
+inputs (B) is Int? Int -> Char? Int -> Char -> String?
+--------- proposal three close ------------------
+```
+
+### Rules
+
+```
+-----------
+S |- A <: B
+-----------
+
+. |- A <: A    AS-Refl
+
+
+C <: A      S |- B <: D
+------------------------ AS-Fun
+S, C |- A -> B <: C -> D
+
+
+S |- A <: D
+------------------------ AS-AndL
+S |- A & B <: D
+
+
+S |- B <: D
+------------------------ AS-AndR
+S |- A & B <: D
+```
+
+## Typed Reduction
+
+### Examples
+
+```haskell
+-- test cases
+1 : Int -->Int 1 : Int
+\x . x : Int -> Int  -->(Int -> Top) \x . x : Int -> Top
+
+-- merge case
+
+1 : Int -->Int 1 : Int
+Ordinary Int
+------------------------------------------
+(1 : Int) ,, (true : Bool) -->Int  1 : Int
+
+
+1 : Int -->Int 1 : Int
+1 : Int -->Int 1 : Int
+--------------------------------------------
+1 : Int -->(Int & Int) (1 : Int) ,, (1 : Int)
+```
+
+```scheme
+;; Redex code
+(guess (tred (1 : int) int v) v)
+;; => '((1 : int))
+
+(guess (tred ((1 : int) doublecomma (true : bool)) int v) v)
+;; => '((1 : int))
+
+(guess (tred (1 : int) (int & int) v) v)
+;; => '(((1 : int) doublecomma (1 : int)))
+```
+
+```
+Discussion about typed reduction
+
+Since reduction need some info from arguments to guide pick from merge.
+succ ,, not 4 should reduce to succ
+
+succ ,, not 4 --> succ ,, not (4 : Int)
+
+Option 1 we can use typing to do this
+
+S, A |- typeof (v1 ,, v2) <: B
+v1 ,, v2 -->B v1
+----------------------------------------------- Step-App-Merge-L
+(v1 ,, v2) (p : A) --> v1 (p : A)
+
+Option 2 is we can modify the typed reduction so that
+
+A |- v1 ,, v2 -->? v’
+----------------------------------------------- Step-App-Merge
+(v1 ,, v2) (p : A) --> v’ (p : A)
+
+From Snow's words, Typed Reduction is correlated to subtyping relation,
+since we have app-subtyping, it's natural if we introduce a context for typed reduction.
+
+
+```
+
+### Rules
+
+```
+------------------
+v-->A v'
+------------------
+
+
+------------------ Tred-Int-Anno
+n : Int -->Int n : Int
+
+
+Ordinary A
+TopLike A
+------------------- Tred-Top
+e -->A (T : Top)
+
+
+not (TopLike C)
+C <: A
+B <: D
+----------------------------------------------------- Tred-Arrow-Annotated
+(\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
+
+
+e1 -->A e1'
+Ordinary A
+---------------------------- Tred-Merge-L
+e1,,e2 -->A e1'
+
+
+e2 -->A e2'
+Ordinary A
+---------------------------- Tred-Merge-R
+e1,,e2 -->A e2'
+
+
+e1 -->A e2
+e1 -->B e3
+---------------------- Tred-And
+e1 -->(A & B) e2,,e3
+```
 ## Reduction
 
 ### Examples
@@ -215,123 +438,6 @@ e1,,e2 --> e1',,e2
 e2 --> e2'
 ------------------- Step-Merge-R
 v,,e2 --> v,,e2'
-```
-
-## Subtyping
-
-```
-------
-A <: B     (Subtyping, rule form)
-------
-
-Int <: Int         S-Int
-
-
-A <: Top           S-Top
-
-
-Top <: D
-----------------   S-TopArr
-A <: C -> D
-
-
-C <: A    B <: D
-----------------   S-Arrow
-A -> B <: C -> D
-
-
-A <: B    A <: C
-----------------   S-And
-A <: B & C
-
-
-A <: C
-----------         S-AndL
-A & B <: C
-
-
-B <: C
-----------         S-AndR
-A & B <: C
-```
-
-## Application Subtyping
-
-### Examples
-
-```
-about amiuguity
-
---------- proposal one open ------------------
-
-S |- A <: D
-not (B <: S -> E)
------------------------- AS-AndL
-S |- A & B <: D
-
-for arbitrary E, it's not algorithmic, denied
-
---------- proposal one close ------------------
-
---------- proposal two open ------------------
-
-S |- A <: D
-not (B <: S -> Top)
------------------------- AS-AndL
-S |- A & B <: D
-
-S -> Top is top-like type,
-
-(string -> char) <: (int -> top) <- that's not what we want
---------- proposal two close -------------------
-
---------- proposal three open ------------------
-
-S |- A <: D
-not (S <: inputs(B))
------------------------- AS-AndL
-S |- A & B <: D
-
-
-(f: Int -> Int ,, g : Int -> Bool) 4
-there's a ambiuguity above
-S is Int, B is Int -> Bool, so inputs(Int -> Int) is Int, that works
-
-But what if
-(f : Int -> (String -> Int) ,, g : Int -> (Char -> Int)) 4
-S is Int here
-inputs (Int -> (Char -> Int)) should be Int or Int -> Char?
-
-((f : Int -> (Char -> (String -> Int)) ,, g : Int -> (Char -> (String -> Bool)) 4) 'c'
-., Char, Int 
-S is probably Int -> Char
-inputs (B) is Int? Int -> Char? Int -> Char -> String?
---------- proposal three close ------------------
-```
-
-### Rules
-
-```
------------
-S |- A <: B
------------
-
-. |- A <: A    AS-Refl
-
-
-C <: A      S |- B <: D
------------------------- AS-Fun
-S, C |- A -> B <: C -> D
-
-
-S |- A <: D
------------------------- AS-AndL
-S |- A & B <: D
-
-
-S |- B <: D
------------------------- AS-AndR
-S |- A & B <: D
 ```
 
 ## Typing
@@ -484,80 +590,3 @@ TopLike B
 TopLike (A -> B)
 ```
 
-
-
-## Typed Reduction
-
-### Examples
-
-```haskell
-1 : Int -->Int 1 : Int
-\x . x : Int -> Int  -->(Int -> Top) \x . x : Int -> Top
-
--- merge case
-
-1 : Int -->Int 1 : Int
-Ordinary Int
-------------------------------------------
-(1 : Int) ,, (true : Bool) -->Int  1 : Int
-
-
-1 : Int -->Int 1 : Int
-1 : Int -->Int 1 : Int
---------------------------------------------
-1 : Int -->(Int & Int) (1 : Int) ,, (1 : Int)
-```
-
-```scheme
-(guess (tred (1 : int) int v) v)
-;; => '((1 : int))
-
-(guess (tred ((1 : int) doublecomma (true : bool)) int v) v)
-;; => '((1 : int))
-
-(guess (tred (1 : int) (int & int) v) v)
-;; => '(((1 : int) doublecomma (1 : int)))
-```
-
-### Rules
-
-```
-------------------
-v-->A v'
-------------------
-
-
------------------- Tred-Int-Anno
-n : Int -->Int n : Int
-
-
-Ordinary A
-TopLike A
-------------------- Tred-Top
-e -->A (T : Top)
-
-
-not (TopLike C)
-C <: A
-B <: D
------------------------------------------------------ Tred-Arrow-Annotated
-(\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
-
-
-e1 -->A e1'
-Ordinary A
----------------------------- Tred-Merge-L
-e1,,e2 -->A e1'
-
-
-e2 -->A e2'
-Ordinary A
----------------------------- Tred-Merge-R
-e1,,e2 -->A e2'
-
-
-e1 -->A e2
-e1 -->B e3
----------------------- Tred-And
-e1 -->(A & B) e2,,e3
-```
