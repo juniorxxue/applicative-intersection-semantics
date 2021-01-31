@@ -44,6 +44,11 @@ lambda (x) x : Int -> Int
 (succ ,, not) 4
 -- (draw (check empty empty ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4) <= int))
 
+(succ ,, not) (4 ,, true)
+
+(f : Int & Bool -> Int & Bool ,, g : String -> String) (4 ,, true)
+-- (judgment-holds (check empty empty ((((lambda (x) x) : ((int & bool) -> (int & bool))) doublecomma ((lambda (x) x) : (bool -> bool))) (4 doublecomma true)) <= (int & bool)))
+
 -- would it bother to implement, if we use a check here?
 ```
 
@@ -252,6 +257,60 @@ A & B <: C
 
 ## Application Subtyping
 
+### Examples
+
+```
+about amiuguity
+
+--------- proposal one open ------------------
+
+S |- A <: D
+not (B <: S -> E)
+------------------------ AS-AndL
+S |- A & B <: D
+
+for arbitrary E, it's not algorithmic, denied
+
+--------- proposal one close ------------------
+
+--------- proposal two open ------------------
+
+S |- A <: D
+not (B <: S -> Top)
+------------------------ AS-AndL
+S |- A & B <: D
+
+S -> Top is top-like type,
+
+(string -> char) <: (int -> top) <- that's not what we want
+--------- proposal two close -------------------
+
+--------- proposal three open ------------------
+
+S |- A <: D
+not (S <: inputs(B))
+------------------------ AS-AndL
+S |- A & B <: D
+
+
+(f: Int -> Int ,, g : Int -> Bool) 4
+there's a ambiuguity above
+S is Int, B is Int -> Bool, so inputs(Int -> Int) is Int, that works
+
+But what if
+(f : Int -> (String -> Int) ,, g : Int -> (Char -> Int)) 4
+S is Int here
+inputs (Int -> (Char -> Int)) should be Int or Int -> Char?
+
+((f : Int -> (Char -> (String -> Int)) ,, g : Int -> (Char -> (String -> Bool)) 4) 'c'
+., Char, Int 
+S is probably Int -> Char
+inputs (B) is Int? Int -> Char? Int -> Char -> String?
+--------- proposal three close ------------------
+```
+
+### Rules
+
 ```
 -----------
 S |- A <: B
@@ -276,6 +335,19 @@ S |- A & B <: D
 ```
 
 ## Typing
+
+### Examples
+
+```
+
+
+. |- 4 ,, true => Int & Bool       
+.; Int & Bool |- (f : Int & Bool -> Int & Bool ,, g : String -> String) => Int & Bool -> Int & Bool
+-------------------------------------------------------------------------------------------
+(f : Int & Bool -> Int & Bool ,, g : String -> String) (4 ,, true) <= Int & Bool
+```
+
+### Rules
 
 ```
 --------------
@@ -330,20 +402,6 @@ T |- e <= A
 T |- e1 => A   T |- e2 => B
 ----------------------------- TMerge
 T |- e1 ,, e2 => A & B
-```
-
-```
-not (int -> bool -> int)   (int -> bool)
-not (int -> bool) <: (int -> any)
-
-
-
-                        ---------------------------------------------------- TLam2
-.|- true => bool         .;., int, bool |- (\b . succ) => bool -> B
-                     -------------------------------------------------------------------- TApp1
-.|- 1 => int         .; ., int |- (\b . succ) true => int -> B
---------------------------------------------------------------------------------------- TApp1
-. ; . |- ((\b . succ) true) 1 => B
 ```
 
 ## Ordinary
