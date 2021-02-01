@@ -248,6 +248,12 @@ v1 ,, v2 -->B v1
 ----------------------------------------------- Step-App-Merge-L
 (v1 ,, v2) (p : A) --> v1 (p : A)
 
+One thoughts here, actually the type info of merged term can be get from its term
+
+v1 ,, v2 actually is (p1 : A1) ,, (p2 : A2), the type of it is A1 & A2.
+
+Notes: is (\x .x ,, \x. x : Bool -> Bool) 1 valid?
+
 Option 2 is we can modify the typed reduction so that
 
 A |- v1 ,, v2 -->? v’
@@ -257,7 +263,7 @@ A |- v1 ,, v2 -->? v’
 From Snow's words, Typed Reduction is correlated to subtyping relation,
 since we have app-subtyping, it's natural if we introduce a context for typed reduction.
 
-
+TBD
 ```
 
 ### Rules
@@ -371,8 +377,6 @@ succ ,, not 4
 ![](imgs/reduce_2.png)
 
 ![](imgs/reduce_3.png)
-
-![](imgs/reduce_4.png)
 
 ![](imgs/reduce_5.png)
 
