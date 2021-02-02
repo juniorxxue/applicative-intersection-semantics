@@ -60,13 +60,7 @@ lambda (x) x : Int -> Int
 ```haskell
 true : Bool is a value
 1 : Int is a value
-ture : Bool ,, 1 : Int is a value
-
-f : Int -> Int is a value
-g : Bool -> Bool is a value
-f : Int -> Int ,, g : Bool -> Bool is a value
-
--- value of merge can be seen as merges of primitive (p : A)
+(true ,, 1) : (Bool & Int) is a value
 ```
 
 ### Rules
@@ -74,8 +68,10 @@ f : Int -> Int ,, g : Bool -> Bool is a value
 ```
 A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
-p ::= T | n | \x . e
-v ::= p : A | \x . e | v1,,v2
+
+p ::= T | n | \x . e | p1,,p2
+v ::= p : A | \x . e 
+
 T ::= . | T, x : A
 S ::= . | S, A
 ```
@@ -121,12 +117,12 @@ A & B <: C
 
 ## Application Subtyping
 
-### Examples
+### Discussions
 
 ```
-about amiuguity
+dicussion about amiuguity
 
---------- proposal one open ------------------
+--------- PROPOSAL 1 OPEN ------------------
 
 S |- A <: D
 not (B <: S -> E)
@@ -135,9 +131,9 @@ S |- A & B <: D
 
 for arbitrary E, it's not algorithmic, denied
 
---------- proposal one close ------------------
+--------- PROPOSAL 1 CLOSE ------------------
 
---------- proposal two open ------------------
+--------- PROPOSAL 2 OPEN ------------------
 
 S |- A <: D
 not (B <: S -> Top)
@@ -147,9 +143,9 @@ S |- A & B <: D
 S -> Top is top-like type,
 
 (string -> char) <: (int -> top) <- that's not what we want
---------- proposal two close -------------------
+--------- PROPOSAL 2 CLOSE -------------------
 
---------- proposal three open ------------------
+--------- PROPOSAL 3 OPEN ------------------
 
 S |- A <: D
 not (S <: inputs(B))
@@ -170,7 +166,21 @@ inputs (Int -> (Char -> Int)) should be Int or Int -> Char?
 ., Char, Int 
 S is probably Int -> Char
 inputs (B) is Int? Int -> Char? Int -> Char -> String?
---------- proposal three close ------------------
+--------- PROPOSAL 3 OPEN CLOSE ------------------
+
+--------- PROPOSAL 4 OPEN ---------------------
+(f : Int -> Char -> Bool,, (g : String -> String -> Bool,, h : Bool -> Bool -> Bool)) 3
+actually here you want to collect the *first* inputs of g and h
+String,Bool
+and check that Int is not one of those
+so
+
+S,I |- A <: D
+not (I in Nextinputs(B))
+------------------------ AS-AndL
+S,I |- A & B <: D
+
+--------- PROPOSAL 4 CLOSE --------------------
 ```
 
 ### Rules
@@ -200,7 +210,7 @@ S |- A & B <: D
 
 ## Typed Reduction
 
-### Examples
+### Discussions
 
 ```haskell
 -- test cases
@@ -266,11 +276,30 @@ since we have app-subtyping, it's natural if we introduce a context for typed re
 TBD
 ```
 
+```
+value def of merge
+Removal of merge from value bring some changes to typed reduction
+we hope
+(1,,true) : (Int&Bool) -->Int (1 : Int)
+
+e1 -->A e1'
+Ordinary A
+---------------------------- Tred-Merge-L
+e1,,e2 -->A e1'
+
+become
+
+e1 : A -->C e1' : C
+Ordinary C
+---------------------------- Tred-Merge-L
+e1,,e2 : A & B -->C e1' : C
+```
+
 ### Rules
 
 ```
 ------------------
-v-->A v'
+v -->A v'
 ------------------
 
 
@@ -291,22 +320,22 @@ B <: D
 (\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
 
 
-e1 -->A e1'
-Ordinary A
+e1 : A -->C e1' : D
+Ordinary C
 ---------------------------- Tred-Merge-L
-e1,,e2 -->A e1'
+e1,,e2 : A & B -->C e1' : D
 
 
-e2 -->A e2'
-Ordinary A
----------------------------- Tred-Merge-R
-e1,,e2 -->A e2'
+e2 : B -->C e2' : D
+Ordinary C
+---------------------------- Tred-Merge-L
+e1,,e2 : A & B -->C e2' : D
 
 
-e1 -->A e2
-e1 -->B e3
+p : C -->A p1 : D
+p : C -->B p2 : E
 ---------------------- Tred-And
-e1 -->(A & B) e2,,e3
+p : C -->(A & B) e2,,e3 : (D & E)
 ```
 ## Reduction
 
@@ -372,14 +401,6 @@ succ ,, not 4
 (traces step (term (((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (int -> bool))) : (int -> bool)))))
 ```
 
-![](imgs/reduce_1.png)
-
-![](imgs/reduce_2.png)
-
-![](imgs/reduce_3.png)
-
-![](imgs/reduce_5.png)
-
 ### Rules
 
 ```
@@ -389,6 +410,12 @@ e --> e'
 
 ----------------------- Step-Int
 n --> n : Int
+
+
+Not value p:A
+p —>A v
+----------------------- Step-Value
+p:A -> v
 
 
 ---------------------------- Step-Beta
