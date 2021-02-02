@@ -334,9 +334,40 @@ e1,,e2 : A & B -->C e2' : D
 
 p : C -->A p1 : D
 p : C -->B p2 : E
----------------------- Tred-And
+--------------------------------- Tred-And
 p : C -->(A & B) e2,,e3 : (D & E)
 ```
+## Parallel Application
+
+### Discussion
+
+```
+Noted that we want to add a argument context in typed reduction
+to replace
+
+A |- ptypeof(v1 ,, v2) <: B
+v1 ,, v2 -->B v1
+----------------------------------------------- Step-App-Merge-L
+(v1 ,, v2) (p : A) --> v1 (p : A)
+
+The orignal parallel application in TamingMerge
+do the job of distributing input values 
+to let it correspond to BCD subtyping's distributivity rule
+
+Since our first typing version is to pick one from them, the changes would become
+```
+
+### Rules
+
+```
+----------------
+v1 ● v2 --> e
+----------------
+
+
+
+```
+
 ## Reduction
 
 ### Examples
@@ -433,17 +464,16 @@ v -->A v'
 v : A -> v'
 
 
-T; S |- v1 ,, v2 => C
-S, A |- C <: B
-v1 ,, v2 -->B v1
+C |- A & B => D
+(p1,,p2) : (A & B) -->D (p1' : E)
 ----------------------------------------------- Step-App-Merge-L
-(v1 ,, v2) (p : A) --> v1 (p : A)
+((p1,,p2) : (A & B)) (p : C) --> (p1' : E) (p : C)
 
-T; S |- v1 ,, v2 => C
-S, A |- C <: B
-v1 ,, v2 -->B v2
------------------------------------------------ Step-App-Merge-R
-(v1 ,, v2) (p : A) --> v2 (p : A)
+
+C |- A & B => D
+(p1,,p2) : (A & B) -->D (p2' : E)
+----------------------------------------------- Step-App-Merge-L
+((p1,,p2) : (A & B)) (p : C) --> (p2' : E) (p : C)
 
 
 e --> e'
@@ -461,14 +491,14 @@ e2 --> e2'
 v e2 --> v e2'
 
 
-e1 --> e1'
-------------------- Step-Merge-L
-e1,,e2 --> e1',,e2
+e1 : A --> e1' : A1
+----------------------------------- Step-Merge-L
+e1,,e2 : A & B --> e1',,e2 : A1 & B
 
 
-e2 --> e2'
-------------------- Step-Merge-R
-v,,e2 --> v,,e2'
+e2 : B --> e2' : B1
+------------------------------------ Step-Merge-R
+p,,e2 : A & B --> p,,e2' : A & B1
 ```
 
 ## Typing
