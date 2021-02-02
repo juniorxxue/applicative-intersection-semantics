@@ -9,6 +9,7 @@ Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs
 * [Subtyping](#subtyping)
 * [Application Subtyping](#application-subtyping)
 * [Typed Reduction](#typed-reduction)
+* [Parallel Application](#parallel-application)
 * [Reduction](#reduction)
 * [Typing](#typing)
 * [Ordinary](#ordinary)
