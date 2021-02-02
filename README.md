@@ -345,24 +345,43 @@ p : C -->(A & B) e2,,e3 : (D & E)
 Noted that we want to add a argument context in typed reduction
 to replace
 
-A |- ptypeof(v1 ,, v2) <: B
-v1 ,, v2 -->B v1
+C |- A & B => D
+(p1,,p2) : (A & B) -->D (p1' : E)
 ----------------------------------------------- Step-App-Merge-L
-(v1 ,, v2) (p : A) --> v1 (p : A)
+((p1,,p2) : (A & B)) (p : C) --> (p1' : E) (p : C)
 
 The orignal parallel application in TamingMerge
 do the job of distributing input values 
 to let it correspond to BCD subtyping's distributivity rule
 
-Since our first typing version is to pick one from them, the changes would become
+Since our first typing version is to pick one from them, the rules papp-merge
+
+v1 ● vl --> e1   v2 ● vl --> e2
+---------------------------------- PApp-Merge
+(v1,,v2) ● vl --> e1,,e2
+
+then become
+
+C |- A & B => D
+(p1,,p2) : (A & B) -->D (p1' : E)
+(p1' : E) ● (p : C) --> e
+------------------------------------ PApp-Merge-L
+(p1,,p2) : (A & B) ● (p : C) --> e
+
+C |- A & B => D
+(p1,,p2) : (A & B) -->D (p2' : E)
+(p1' : E) ● (p : C) --> e
+------------------------------------ PApp-Merge-R
+(p1,,p2) : (A & B) ● (p : C) --> e
 ```
 
 ### Rules
 
 ```
 ----------------
-v1 ● v2 --> e
+v ● vl --> e
 ----------------
+
 
 
 
@@ -370,7 +389,7 @@ v1 ● v2 --> e
 
 ## Reduction
 
-### Examples
+### Discussions
 
 ```haskell
 (\x . x) 4
@@ -460,7 +479,7 @@ v -->A v'
 
 
 v -->A v'
---------------------------------------------- Step-Anno-Value
+------------------------ Step-Anno-Value
 v : A -> v'
 
 
@@ -503,16 +522,7 @@ p,,e2 : A & B --> p,,e2' : A & B1
 
 ## Typing
 
-### Examples
-
-```
-
-
-. |- 4 ,, true => Int & Bool       
-.; Int & Bool |- (f : Int & Bool -> Int & Bool ,, g : String -> String) => Int & Bool -> Int & Bool
--------------------------------------------------------------------------------------------
-(f : Int & Bool -> Int & Bool ,, g : String -> String) (4 ,, true) <= Int & Bool
-```
+### Discussions
 
 ### Rules
 
