@@ -1,4 +1,4 @@
-# Applicative Intersection Types
+# 		Applicative Intersection Types
 
 Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs.d/blob/master/utils/prettify-redex.el) in emacs, so Redex code may look werid to you :)
 
@@ -332,7 +332,7 @@ e1,,e2 : A & B -->C e1' : D
 
 e2 : B -->C e2' : D
 Ordinary C
----------------------------- Tred-Merge-L
+---------------------------- Tred-Merge-R
 e1,,e2 : A & B -->C e2' : D
 
 
@@ -377,6 +377,38 @@ C |- A & B => D
 (p1' : E) ● (p : C) --> e
 ------------------------------------ PApp-Merge-R
 (p1,,p2) : (A & B) ● (p : C) --> e
+
+found two can be combined as one
+
+Int |- (Int -> Int) & (Bool -> Bool) <: Int -> Int
+(\x.x,,\x.true) : (Int -> Int) & (Bool -> Bool) -->(Int -> Int) \x.x : Int -> Int
+\x.x : Int -> Int ● (4 : Int) --> 4 : Int
+--------------------------------------------------------------------
+(\x.x,,\x.true) : (Int -> Int) & (Bool -> Bool) ● (4 : Int)
+
+
+C <: A      S |- B <: D
+------------------------ AS-Fun
+S, C |- A -> B <: C -> D
+
+
+S |- A <: D
+------------------------ AS-AndL
+S |- A & B <: D
+
+
+S |- B <: D
+------------------------ AS-AndR
+S |- A & B <: D
+
+
+Int & Bool |- (Int -> Int)
+-----------------------------------------------------------
+Int & Bool |- (Int -> Int) & (Bool -> Bool) <: 
+
+
+---------------------------------------------------------------------------
+(\x.x,,\x.true) : (Int -> Int) & (Bool -> Bool) ● (4 ,, true : Int & Bool)
 ```
 
 ### Rules
@@ -400,17 +432,10 @@ v -->A v'
 T ● vl --> T
 
 
-C |- A & B => D
-(p1,,p2) : (A & B) -->D (p1' : E)
-(p1' : E) ● (p : C) --> e
------------------------------------- PApp-Merge-L
-(p1,,p2) : (A & B) ● (p : C) --> e
-
-
-C |- A & B => D
-(p1,,p2) : (A & B) -->D (p2' : E)
-(p1' : E) ● (p : C) --> e
------------------------------------- PApp-Merge-R
+C |- A & B <: D
+(p1,,p2) : (A & B) -->D (p : E)
+(p : E) ● (p : C) --> e
+------------------------------------ PApp-Merge
 (p1,,p2) : (A & B) ● (p : C) --> e
 ```
 
@@ -419,8 +444,6 @@ C |- A & B => D
 ### Discussions
 
 ```
-Cases to justify rules
-
 1
 --> 1 : Int
 
@@ -429,7 +452,9 @@ Cases to justify rules
 --> (\x . x) ● (1 : Int)
 --> x [x -> (1 : Int)]
 --> 1 : Int
+```
 
+```
 (\x . x : Int -> Int) ,, (\x . true : Int -> Bool)
 --> (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool)
 
@@ -441,6 +466,10 @@ is (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) type check?
 |- (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) => (Int -> Int) & (Int -> Bool)
 
 
+
+----------------------------------------------------------------
+. |- (\x . x ,, \x . true) => (Int -> Int) & (Int -> Bool)
+---------------------------------------------------------------
 . |- (\x . x ,, \x . true) <= (Int -> Int) & (Int -> Bool)
 
 currently no typing rule checking againt merge
@@ -455,8 +484,9 @@ then works fine with later derivation
 x : Int |- x <= Int
 ---------------------------
 . |- \x . x <= Int -> Int
+```
 
-
+```
 (\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) 4
 --> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) 4
 --> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) (4 : Int)
@@ -547,10 +577,10 @@ disjoint A B        T |- e1 => A   T |- e2 => B
 ----------------------------------------------- TMerge
 T |- e1 ,, e2 => A & B
 
-it lacks a S
+it lacks a stack ctx S
 
 disjoint A B        T; S |- e1 => A   T; S |- e2 => B
------------------------------------------------ TMerge-New
+-------------------------------------------------- TMerge-New
 T; S|- e1 ,, e2 => A & B
 ```
 
