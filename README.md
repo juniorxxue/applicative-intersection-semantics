@@ -444,6 +444,32 @@ is (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) type check?
 . |- (\x . x ,, \x . true) <= (Int -> Int) & (Int -> Bool)
 
 currently no typing rule checking againt merge
+probably add this rule
+
+disjoint A B        T |- e1 <= A   T |- e2 <= B
+----------------------------------------------- TMerge-Chk
+T |- e1 ,, e2 <= A & B
+
+then works fine with later derivation
+
+x : Int |- x <= Int
+---------------------------
+. |- \x . x <= Int -> Int
+
+
+(\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) 4
+--> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) 4
+--> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) (4 : Int)
+--> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) ● (4 : Int)
+--> (\x . x : (Int -> Int)) ● (4 : Int)
+--> 4 : Int : Int
+--> 4 : Int
+
+(\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) 4,,true
+--> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) 4,,true
+--> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) (4,,true : Int & Bool)
+--> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) ● (4,,true : Int & Bool)
+--> 
 ```
 
 ### Rules
@@ -505,6 +531,28 @@ p,,e2 : A & B --> p,,e2' : A & B1
 ## Typing
 
 ### Discussions
+
+```
+Do my system type check with
+(\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) 4,,true => Int & Bool
+
+T |- e2 => A   T ; S, A |- e1 => A -> B
+----------------------------------------- TApp1
+T ; S |- e1 e2 => B
+
+4,,true => Int & Bool ✔
+.; Int & Bool |- (\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) => Int & Bool
+
+disjoint A B        T |- e1 => A   T |- e2 => B
+----------------------------------------------- TMerge
+T |- e1 ,, e2 => A & B
+
+it lacks a S
+
+disjoint A B        T; S |- e1 => A   T; S |- e2 => B
+----------------------------------------------- TMerge-New
+T; S|- e1 ,, e2 => A & B
+```
 
 ### Rules
 
