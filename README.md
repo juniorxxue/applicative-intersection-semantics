@@ -62,6 +62,9 @@ lambda (x) x : Int -> Int
 true : Bool is a value
 1 : Int is a value
 (true ,, 1) : (Bool & Int) is a value
+
+
+(\x . x ,, \x . x ) : (Int -> Int) & (Bool -> Bool)
 ```
 
 ### Rules
@@ -403,6 +406,7 @@ C |- A & B => D
 ------------------------------------ PApp-Merge-L
 (p1,,p2) : (A & B) ● (p : C) --> e
 
+
 C |- A & B => D
 (p1,,p2) : (A & B) -->D (p2' : E)
 (p1' : E) ● (p : C) --> e
@@ -414,64 +418,32 @@ C |- A & B => D
 
 ### Discussions
 
-```haskell
-(\x . x) 4
---> (\x . x) (4 : Int)
---> (4 : Int)
-
-------- Another option (already discarded) --------------
--- (that may be a intuitive one)
--- the problem is
--- system can type check (\x . x) 4
--- while cannot type check (\x . x)
--- so we consider it a special rule
-(\x . x) 4
---> (\x . x) (4 : Int)
---> ((\x . x) : (guess Int)) (4 : Int)
---> ((\x . x) : (Int -> Int)) (4 : Int)
-------- Another option (already discarded) --------------
-
-
--- (f : Int -> Int) ,, (g : Bool -> Bool) 
--- for a merged function, it's already a value
-succ ,, not
-
--- for application with a merged function
-
--- by meta-function we already have
--- 1) succ ,, not -->(Int -> Int) succ
--- 2) Int | (Int -> Int) & (Bool -> Bool) <: Int -> Int
-
-succ ,, not 4
---> succ ,, not (4 : Int)
---> succ (4 : Int)
-
-(f : Int -> Int) ,, (g : Int -> Bool) :  Int -> Bool
---> f : Int -> Bool -- step-anno-value
-
--------------- werid case 1 ---------------------------
-(1 : Int) : (Int & Int) -- works fine
---> 1 : Int ,, 1 : Int
-
-1 : Int & Int
-
-1 : (Int & Int) -- will be considered as a value
-1 : (Int & Int)
---> 1 : Int : (Int & Int)
--- consider make p : A -->A p' : A
--- 1 : Int --> (1 : Int) : Int --> ((1 : Int) : Int) : Int
-
-1 : Int & Int
--------------- werid case 1 ------------------------------
 ```
+Cases to justify rules
 
-```scheme
-;; redex code to justify
-(traces step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4)))
-(traces step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) true)))
+1
+--> 1 : Int
 
-(traces step (term ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (int -> bool))) : (int -> bool))))
-(traces step (term (((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (int -> bool))) : (int -> bool)))))
+(\x . x) 1
+--> (\x . x) (1 : Int)
+--> (\x . x) ● (1 : Int)
+--> x [x -> (1 : Int)]
+--> 1 : Int
+
+(\x . x : Int -> Int) ,, (\x . true : Int -> Bool)
+--> (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool)
+
+is (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) type check?
+
+
+|- (Int -> Int) & (Int -> Bool <: (Int -> Int) & (Int -> Bool) . |- (\x . x ,, \x . true) <= (Int -> Int) & (Int -> Bool)
+-------------------------------------------------------------------------------------------------------------------------- TAnn
+|- (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) => (Int -> Int) & (Int -> Bool)
+
+
+. |- (\x . x ,, \x . true) <= (Int -> Int) & (Int -> Bool)
+
+currently no typing rule checking againt merge
 ```
 
 ### Rules
@@ -481,8 +453,12 @@ succ ,, not 4
 e --> e'
 -------------
 
------------------------ Step-Int
+----------------------- Step-Int-Anno
 n --> n : Int
+
+
+---------------------------------------------- Step-Merge-Anno
+(p1 : A),,(p2 : B) --> (p1,,p2) : (A & B)
 
 
 v1 ● v2 --> e
