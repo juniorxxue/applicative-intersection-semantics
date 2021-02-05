@@ -14,7 +14,11 @@
   (tau ::= int bool top (-> tau tau) (& tau tau))
   (Gamma ::= ((x tau) ...))
   (Psi ::= (tau ...))
-  (mode ::= => <=)
+  (p ::= top true false number (lambda (x) e))
+  (v ::= (: p tau) (lambda (x) e) (: (doublecomma (: p_1 tau_1)
+                                 (: p_2 tau_2))
+                              (& tau_1 tau_2)))
+  (E ::= hole (E e) (v E))
   #:binding-forms
   (lambda (x) e :refers-to x)
   )
@@ -160,3 +164,130 @@
    ---------------------------------- "typing-sub"
    (check Gamma () e <= tau_1)]
   )
+
+#;(redex-match L v (term (: (doublecomma (: (lambda (x) x)
+                                (-> int int))
+                             (: (lambda (x) x)
+                                (-> bool bool)))
+                          (& (-> int int)
+                             (-> bool bool)))))
+
+(define-judgment-form L
+  #:mode (ordinary I)
+  #:contract (ordinary tau)
+  [---------------------------------- "ord-top"
+   (ordinary top)]
+  [---------------------------------- "ord-int"
+   (ordinary int)]
+  [---------------------------------- "ord-arrow"
+   (ordinary (-> tau_1 tau_2))])
+
+(define-judgment-form L
+  #:mode (toplike I)
+  #:contract (toplike tau)
+  [---------------------------------- "tl-top"
+   (toplike top)]
+  [(toplike tau_1)
+   (toplike tau_2)
+   ---------------------------------- "tl-and"
+   (toplike (& tau_1 tau_2))]
+  [(toplike tau_2)
+   ---------------------------------- "tl-arrow"
+   (toplike (-> tau_1 tau_2))]
+  )
+
+(define-judgment-form L
+  #:mode (tred I I O)
+  #:contract (tred v tau v)
+  [---------------------------------- "tred-int"
+   (tred (: number int) int (: number int))]
+  [---------------------------------- "tred-true"
+   (tred (: true bool) bool (: true bool))]
+  [---------------------------------- "tred-false"
+   (tred (: false bool) bool (: false bool))]
+  [(ordinary tau)
+   (toplike tau)
+   ---------------------------------- "tred-top"
+   (tred e tau (: top top))]
+  [(side-condition (not (judgment-holds (toplike tau_3))))
+   (sub tau_3 tau_1)
+   (sub tau_2 tau_4)
+   ---------------------------------- "tred-arr-anno"
+   (tred (: (lambda (x) e) (-> tau_1 tau_2))
+         (-> tau_3 tau_4)
+         (: (lambda (x) e) (-> tau_1 tau_4)))]
+  [(tred e_1 tau_2 e_3)
+   (ordinary tau_2)
+   ---------------------------------- "tred-merge-l"
+   (tred (: (doublecomma e_1 e_2) tau_1)
+         tau_2
+         e_3)]
+  [(tred e_2 tau_2 e_3)
+   (ordinary tau_2)
+   ---------------------------------- "tred-merge-r"
+   (tred (: (doublecomma e_1 e_2) tau_1)
+         tau_2
+         e_3)]
+  [(tred e tau_1 e_1)
+   (tred e tau_2 e_2)
+   ---------------------------------- "tred-and"
+   (tred e
+         (& tau_1 tau_2)
+         (: (doublecomma e_1 e_2) (& tau_1 tau_2)))]
+  )
+
+(define-judgment-form L
+  #:mode (papp I I O)
+  #:contract (papp v v e)
+  [---------------------------------- "papp-abs"
+                                      (papp (lambda (x) e) v (substitute e x v))]
+  [(tred v_1 tau_1 v_2)
+   ---------------------------------- "papp-abs-anno"
+   (papp (: (lambda (x) e)
+            (-> tau_1 tau_2))
+         v_1
+         (: (substitute e x v_2)
+            tau_2))]
+  [---------------------------------- "papp-top"
+                                      (papp top v top)]
+  [(appsub (tau_3) (& tau_1 tau_2) tau_4)
+   (tred (: (doublecomma (: p_1 tau_1)
+               (: p_2 tau_2))
+            (& tau_1 tau_2))
+         tau_4
+         v)
+   (papp v (: p tau_3) e)
+   ---------------------------------- "papp-merge"
+   (papp (: (doublecomma (: p_1 tau_1)
+               (: p_2 tau_2))
+            (& tau_1 tau_2))
+         (: p tau_3)
+         e)]
+  )
+
+(define step
+  (reduction-relation
+   L
+   #:domain e
+   #:codomain e
+   (--> number (: number int)
+        "step-int-anno")
+   (--> true (: true bool)
+        "step-true-anno")
+   (--> false (: false bool)
+        "step-false-anno")
+   (--> top (: top top)
+        "step-top-anno")
+   ;; (--> (v_1 v_2) e
+   ;;      (side-condition (judgment-holds ()))
+   ;;      "step-beta")
+   (--> (doublecomma (: p_1 tau_1)
+           (: p_2 tau_2))
+        (: (doublecomma (: p_1 tau_1)
+              (: p_2 tau_2))
+           (& tau_1 tau_2))
+        "step-merge-anno")
+   ))
+
+;; (define -->r (compatible-closure step L e))
+(define -->n (context-closure step L E))
