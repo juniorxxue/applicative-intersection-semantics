@@ -73,8 +73,8 @@ true : Bool is a value
 A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
-p ::= T | n | \x . e | p1,,p2
-v ::= p : A | \x . e 
+p ::= T | n | \x . e
+v ::= p : A | \x . e | (p1 : A ,, p2 : B) : A & B
 
 T ::= . | T, x : A
 S ::= . | S, A
@@ -183,7 +183,6 @@ S,I |- A <: D
 not (I in Nextinputs(B))
 ------------------------ AS-AndL
 S,I |- A & B <: D
-
 --------- PROPOSAL 4 CLOSE --------------------
 ```
 
@@ -202,14 +201,16 @@ C <: A      S |- B <: D
 S, C |- A -> B <: C -> D
 
 
-S |- A <: D
+S, C |- A <: D
+not (C in Nextinputs(B))
 ------------------------ AS-AndL
-S |- A & B <: D
+S, C |- A & B <: D
 
 
-S |- B <: D
+S, C |- B <: D
+not (C in Nextinputs(A))
 ------------------------ AS-AndR
-S |- A & B <: D
+S, C |- A & B <: D
 ```
 
 ## Typed Reduction
@@ -297,6 +298,14 @@ e1 : A -->C e1' : C
 Ordinary C
 ---------------------------- Tred-Merge-L
 e1,,e2 : A & B -->C e1' : C
+
+
+UPDATE 2
+
+1 : Int -->Int 1 : Int
+1 : Int -->Int 1 : Int
+------------------------------------------------------ Tred-And
+1 -->(Int & Int) ((1 : Int),,(1 : Int)) : (Int & Int)
 ```
 
 ### Rules
@@ -324,22 +333,22 @@ B <: D
 (\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
 
 
-e1 : A -->C e1' : D
-Ordinary C
+e1 -->B e1'
+Ordinary B
 ---------------------------- Tred-Merge-L
-e1,,e2 : A & B -->C e1' : D
+e1,,e2 : A -->B e1'
 
 
-e2 : B -->C e2' : D
-Ordinary C
+e2 -->C e2
+Ordinary B
 ---------------------------- Tred-Merge-R
-e1,,e2 : A & B -->C e2' : D
+e1,,e2 : A -->B e2'
 
 
-p : C -->A p1 : D
-p : C -->B p2 : E
+e -->A e1
+e -->B e2
 --------------------------------- Tred-And
-p : C -->(A & B) e2,,e3 : (D & E)
+e -->(A & B) e1,,e2 : (A & B)
 ```
 ## Parallel Application
 
@@ -403,7 +412,7 @@ S |- A & B <: D
 
 
 Int & Bool |- (Int -> Int)
------------------------------------------------------------
+-------------------------------------------------------------
 Int & Bool |- (Int -> Int) & (Bool -> Bool) <: 
 
 
@@ -433,10 +442,10 @@ T ● vl --> T
 
 
 C |- A & B <: D
-(p1,,p2) : (A & B) -->D (p : E)
+(p1 : A ,, p2 : B) : (A & B) -->D p : E
 (p : E) ● (p : C) --> e
------------------------------------- PApp-Merge
-(p1,,p2) : (A & B) ● (p : C) --> e
+------------------------------------------- PApp-Merge
+(p1 : A ,, p2 : B) : (A & B) ● (p : C) --> e
 ```
 
 ## Reduction
@@ -494,12 +503,6 @@ x : Int |- x <= Int
 --> (\x . x : (Int -> Int)) ● (4 : Int)
 --> 4 : Int : Int
 --> 4 : Int
-
-(\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) 4,,true
---> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) 4,,true
---> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) (4,,true : Int & Bool)
---> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) ● (4,,true : Int & Bool)
---> 
 ```
 
 ### Rules
@@ -513,19 +516,13 @@ e --> e'
 n --> n : Int
 
 
----------------------------------------------- Step-Merge-Anno
-(p1 : A),,(p2 : B) --> (p1,,p2) : (A & B)
+-------------------------------------------------- Step-Merge-Anno
+(p1 : A),,(p2 : B) --> (p1 : A),,(p2 : B) : (A & B)
 
 
 v1 ● v2 --> e
 ---------------- Step-PApp
 v1 v2 --> e
-
-
-Not value p:A
-p -->A v
------------------------ Step-Value
-p:A --> v
 
 
 v -->A v'
@@ -549,13 +546,13 @@ v e2 --> v e2'
 
 
 e1 : A --> e1' : A1
------------------------------------ Step-Merge-L
-e1,,e2 : A & B --> e1',,e2 : A1 & B
+----------------------------------------------------------- Step-Merge-L
+(e1 : A ,, e2 : B) : A & B --> (e1' : A1 ,, e2 : B) : A1 & B
 
 
 e2 : B --> e2' : B1
------------------------------------- Step-Merge-R
-p,,e2 : A & B --> p,,e2' : A & B1
+---------------------------------------------------------- Step-Merge-R
+(p1 : A ,, e2 : B) : A & B --> (p1 : A ,, e2' : B1) : A & B1
 ```
 
 ## Typing
