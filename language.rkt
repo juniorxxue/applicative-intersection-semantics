@@ -249,7 +249,7 @@
          (: (substitute e x v_2)
             tau_2))]
   [---------------------------------- "papp-top"
-                                      (papp top v top)]
+   (papp top v top)]
   [(appsub (tau_3) (& tau_1 tau_2) tau_4)
    (tred (: (doublecomma (: p_1 tau_1)
                (: p_2 tau_2))
@@ -278,16 +278,39 @@
         "step-false-anno")
    (--> top (: top top)
         "step-top-anno")
-   ;; (--> (v_1 v_2) e
-   ;;      (side-condition (judgment-holds ()))
-   ;;      "step-beta")
+   (--> (v_1 v_2) e
+        (side-condition (judgment-holds (papp v_1 v_2 e)))
+        (where e ,(first (judgment-holds (papp v_1 v_2 e) e)))
+        "step-beta")
    (--> (doublecomma (: p_1 tau_1)
            (: p_2 tau_2))
         (: (doublecomma (: p_1 tau_1)
               (: p_2 tau_2))
            (& tau_1 tau_2))
         "step-merge-anno")
+   (--> (: v_1 tau) v_2
+        (side-condition  (judgment-holds (tred v_1 tau v_2)))
+        (where v_2 ,(first (judgment-holds (tred v_1 tau v) v)))
+        "step-anno-value")
    ))
 
 ;; (define -->r (compatible-closure step L e))
 (define -->n (context-closure step L E))
+
+#;(judgment-holds (papp (: (doublecomma (: (lambda (x) x)
+                               (-> int int))
+                            (: (lambda (x) true)
+                               (-> bool bool)))
+                         (& (-> int int)
+                            (-> bool bool)))
+                      (: 4 int)
+                      e) e)
+
+(apply-reduction-relation* -->n
+                           (term ((: (doublecomma (: (lambda (x) x)
+                                           (-> int int))
+                                        (: (lambda (x) true)
+                                           (-> bool bool)))
+                                     (& (-> int int)
+                                        (-> bool bool)))
+                                  4)))

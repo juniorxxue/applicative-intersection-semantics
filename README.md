@@ -73,7 +73,7 @@ true : Bool is a value
 A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
-p ::= T | n | \x . e
+p ::= T |p n | \x . e
 v ::= p : A | \x . e | (p1 : A ,, p2 : B) : A & B
 
 T ::= . | T, x : A
@@ -333,16 +333,16 @@ B <: D
 (\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
 
 
-e1 -->B e1'
+e1 -->B e
 Ordinary B
 ---------------------------- Tred-Merge-L
-e1,,e2 : A -->B e1'
+e1,,e2 : A -->B e
 
 
-e2 -->C e2
+e2 -->C e
 Ordinary B
 ---------------------------- Tred-Merge-R
-e1,,e2 : A -->B e2'
+e1,,e2 : A -->B e
 
 
 e -->A e1
@@ -442,8 +442,8 @@ T ● vl --> T
 
 
 C |- A & B <: D
-(p1 : A ,, p2 : B) : (A & B) -->D p : E
-(p : E) ● (p : C) --> e
+(p1 : A ,, p2 : B) : (A & B) -->D v
+v ● (p : C) --> e
 ------------------------------------------- PApp-Merge
 (p1 : A ,, p2 : B) : (A & B) ● (p : C) --> e
 ```
@@ -530,6 +530,7 @@ v -->A v'
 v : A -> v'
 
 
+not value (e : A)
 e --> e'
 ------------------ Step-Anno
 e : A --> e' : A
