@@ -20,52 +20,19 @@ Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs
 
 ```haskell
 1 
--- (draw (infer empty empty 1 => tau))
-
 1 : Int
--- (draw (infer empty empty (1 : int) => tau))
-
 lambda (x) x : Int -> Int
--- (draw (infer empty empty ((lambda (x) x) : (int -> int)) => tau))
-
 (lambda (x) x) 4
--- (draw (infer empty empty ((lambda (x) x) 2) => tau))
-
 1 ,, true
--- (draw (infer empty empty (1 doublecomma true) => tau))
-
 1 ,, true : Int & Bool 
--- (draw (infer empty empty ((1 doublecomma true) : (int & bool)) => tau))
-
 (succ ,, not : Int -> Int) 5
--- (draw (infer empty empty (((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) : (int -> int)) 5) => tau))
-
 (succ ,, f : Int -> Bool) 3 : Bool
--- (draw (infer empty empty (((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) true) : (int -> bool))) => tau))
-
 (succ ,, not) 4
--- (draw (check empty empty ((((lambda (x) x) : (int -> int)) doublecomma ((lambda (x) x) : (bool -> bool))) 4) <= int))
-
 (succ ,, not) (4 ,, true)
-
 (f : Int & Bool -> Int & Bool ,, g : String -> String) (4 ,, true)
--- (judgment-holds (check empty empty ((((lambda (x) x) : ((int & bool) -> (int & bool))) doublecomma ((lambda (x) x) : (bool -> bool))) (4 doublecomma true)) <= (int & bool)))
-
--- would it bother to implement, if we use a check here?
 ```
 
 ## Syntax
-
-### Examples
-
-```haskell
-true : Bool is a value
-1 : Int is a value
-(true ,, 1) : (Bool & Int) is a value
-
-
-(\x . x ,, \x . x ) : (Int -> Int) & (Bool -> Bool)
-```
 
 ### Rules
 
@@ -73,8 +40,8 @@ true : Bool is a value
 A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
-p ::= T |p n | \x . e
-v ::= p : A | \x . e | (p1 : A ,, p2 : B) : A & B
+p ::= T | n | \x . e | p1,,p2
+v ::= p : A | \x . e 
 
 T ::= . | T, x : A
 S ::= . | S, A
@@ -120,6 +87,33 @@ A & B <: C
 ```
 
 ## Application Subtyping
+
+### Rules
+
+```
+-----------
+S |- A <: B
+-----------
+
+. |- A <: A    AS-Refl
+
+
+C <: A      S |- B <: D
+------------------------ AS-Fun
+S, C |- A -> B <: C -> D
+
+
+S, C |- A <: D
+not (C in Nextinputs(B))
+------------------------ AS-AndL
+S, C |- A & B <: D
+
+
+S, C |- B <: D
+not (C in Nextinputs(A))
+------------------------ AS-AndR
+S, C |- A & B <: D
+```
 
 ### Discussions
 
@@ -186,126 +180,10 @@ S,I |- A & B <: D
 --------- PROPOSAL 4 CLOSE --------------------
 ```
 
-### Rules
-
-```
------------
-S |- A <: B
------------
-
-. |- A <: A    AS-Refl
-
-
-C <: A      S |- B <: D
------------------------- AS-Fun
-S, C |- A -> B <: C -> D
-
-
-S, C |- A <: D
-not (C in Nextinputs(B))
------------------------- AS-AndL
-S, C |- A & B <: D
-
-
-S, C |- B <: D
-not (C in Nextinputs(A))
------------------------- AS-AndR
-S, C |- A & B <: D
-```
-
 ## Typed Reduction
 
-### Discussions
-
-```haskell
--- test cases
-1 : Int -->Int 1 : Int
-\x . x : Int -> Int  -->(Int -> Top) \x . x : Int -> Top
-
--- merge case
-
-1 : Int -->Int 1 : Int
-Ordinary Int
-------------------------------------------
-(1 : Int) ,, (true : Bool) -->Int  1 : Int
-
-
-1 : Int -->Int 1 : Int
-1 : Int -->Int 1 : Int
---------------------------------------------
-1 : Int -->(Int & Int) (1 : Int) ,, (1 : Int)
 ```
 
-```scheme
-;; Redex code
-(guess (tred (1 : int) int v) v)
-;; => '((1 : int))
-
-(guess (tred ((1 : int) doublecomma (true : bool)) int v) v)
-;; => '((1 : int))
-
-(guess (tred (1 : int) (int & int) v) v)
-;; => '(((1 : int) doublecomma (1 : int)))
-```
-
-```
-Discussion about typed reduction
-
-Since reduction need some info from arguments to guide pick from merge.
-succ ,, not 4 should reduce to succ
-
-succ ,, not 4 --> succ ,, not (4 : Int)
-
-Option 1 we can use typing to do this
-
-S, A |- typeof (v1 ,, v2) <: B
-v1 ,, v2 -->B v1
------------------------------------------------ Step-App-Merge-L
-(v1 ,, v2) (p : A) --> v1 (p : A)
-
-One thoughts here, actually the type info of merged term can be get from its term
-
-v1 ,, v2 actually is (p1 : A1) ,, (p2 : A2), the type of it is A1 & A2.
-
-Notes: is (\x .x ,, \x. x : Bool -> Bool) 1 valid?
-
-Option 2 is we can modify the typed reduction so that
-
-A |- v1 ,, v2 -->? v’
------------------------------------------------ Step-App-Merge
-(v1 ,, v2) (p : A) --> v’ (p : A)
-
-From Snow's words, Typed Reduction is correlated to subtyping relation,
-since we have app-subtyping, it's natural if we introduce a context for typed reduction.
-
-TBD
-```
-
-```
-value def of merge
-Removal of merge from value bring some changes to typed reduction
-we hope
-(1,,true) : (Int&Bool) -->Int (1 : Int)
-
-e1 -->A e1'
-Ordinary A
----------------------------- Tred-Merge-L
-e1,,e2 -->A e1'
-
-become
-
-e1 : A -->C e1' : C
-Ordinary C
----------------------------- Tred-Merge-L
-e1,,e2 : A & B -->C e1' : C
-
-
-UPDATE 2
-
-1 : Int -->Int 1 : Int
-1 : Int -->Int 1 : Int
------------------------------------------------------- Tred-And
-1 -->(Int & Int) ((1 : Int),,(1 : Int)) : (Int & Int)
 ```
 
 ### Rules
@@ -323,7 +201,7 @@ n : Int -->Int n : Int
 Ordinary A
 TopLike A
 ------------------- Tred-Top
-e -->A (T : Top)
+v -->A (T : Top)
 
 
 not (TopLike C)
@@ -333,92 +211,24 @@ B <: D
 (\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
 
 
-e1 -->B e
-Ordinary B
+p1 : A -->C p1' : D
+Ordinary C
 ---------------------------- Tred-Merge-L
-e1,,e2 : A -->B e
+p1,,p2 : A & B -->C p1' : D
 
 
-e2 -->C e
-Ordinary B
----------------------------- Tred-Merge-R
-e1,,e2 : A -->B e
+p2 : B -->C p2' : D
+Ordinary C
+---------------------------- Tred-Merge-L
+p1,,p2 : A & B -->C p2' : D
 
 
-e -->A e1
-e -->B e2
+p : C -->A p1 : D
+p : C -->B p2 : E
 --------------------------------- Tred-And
-e -->(A & B) e1,,e2 : (A & B)
+p : C -->(A & B) p1,,p2 : (D & E)
 ```
 ## Parallel Application
-
-### Discussion
-
-```
-Noted that we want to add a argument context in typed reduction
-to replace
-
-C |- A & B => D
-(p1,,p2) : (A & B) -->D (p1' : E)
------------------------------------------------ Step-App-Merge-L
-((p1,,p2) : (A & B)) (p : C) --> (p1' : E) (p : C)
-
-The orignal parallel application in TamingMerge
-do the job of distributing input values 
-to let it correspond to BCD subtyping's distributivity rule
-
-Since our first typing version is to pick one from them, the rules papp-merge
-
-v1 ● vl --> e1   v2 ● vl --> e2
----------------------------------- PApp-Merge
-(v1,,v2) ● vl --> e1,,e2
-
-then become
-
-C |- A & B => D
-(p1,,p2) : (A & B) -->D (p1' : E)
-(p1' : E) ● (p : C) --> e
------------------------------------- PApp-Merge-L
-(p1,,p2) : (A & B) ● (p : C) --> e
-
-C |- A & B => D
-(p1,,p2) : (A & B) -->D (p2' : E)
-(p1' : E) ● (p : C) --> e
------------------------------------- PApp-Merge-R
-(p1,,p2) : (A & B) ● (p : C) --> e
-
-found two can be combined as one
-
-Int |- (Int -> Int) & (Bool -> Bool) <: Int -> Int
-(\x.x,,\x.true) : (Int -> Int) & (Bool -> Bool) -->(Int -> Int) \x.x : Int -> Int
-\x.x : Int -> Int ● (4 : Int) --> 4 : Int
---------------------------------------------------------------------
-(\x.x,,\x.true) : (Int -> Int) & (Bool -> Bool) ● (4 : Int)
-
-
-C <: A      S |- B <: D
------------------------- AS-Fun
-S, C |- A -> B <: C -> D
-
-
-S |- A <: D
------------------------- AS-AndL
-S |- A & B <: D
-
-
-S |- B <: D
------------------------- AS-AndR
-S |- A & B <: D
-
-
-Int & Bool |- (Int -> Int)
--------------------------------------------------------------
-Int & Bool |- (Int -> Int) & (Bool -> Bool) <: 
-
-
----------------------------------------------------------------------------
-(\x.x,,\x.true) : (Int -> Int) & (Bool -> Bool) ● (4 ,, true : Int & Bool)
-```
 
 ### Rules
 
@@ -442,68 +252,13 @@ T ● vl --> T
 
 
 C |- A & B <: D
-(p1 : A ,, p2 : B) : (A & B) -->D v
+p1,,p2 : (A & B) -->D v
 v ● (p : C) --> e
 ------------------------------------------- PApp-Merge
-(p1 : A ,, p2 : B) : (A & B) ● (p : C) --> e
+p1,,p2 : (A & B) ● (p : C) --> e
 ```
 
 ## Reduction
-
-### Discussions
-
-```
-1
---> 1 : Int
-
-(\x . x) 1
---> (\x . x) (1 : Int)
---> (\x . x) ● (1 : Int)
---> x [x -> (1 : Int)]
---> 1 : Int
-```
-
-```
-(\x . x : Int -> Int) ,, (\x . true : Int -> Bool)
---> (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool)
-
-is (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) type check?
-
-
-|- (Int -> Int) & (Int -> Bool <: (Int -> Int) & (Int -> Bool) . |- (\x . x ,, \x . true) <= (Int -> Int) & (Int -> Bool)
--------------------------------------------------------------------------------------------------------------------------- TAnn
-|- (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) => (Int -> Int) & (Int -> Bool)
-
-
-
-----------------------------------------------------------------
-. |- (\x . x ,, \x . true) => (Int -> Int) & (Int -> Bool)
----------------------------------------------------------------
-. |- (\x . x ,, \x . true) <= (Int -> Int) & (Int -> Bool)
-
-currently no typing rule checking againt merge
-probably add this rule
-
-disjoint A B        T |- e1 <= A   T |- e2 <= B
------------------------------------------------ TMerge-Chk
-T |- e1 ,, e2 <= A & B
-
-then works fine with later derivation
-
-x : Int |- x <= Int
----------------------------
-. |- \x . x <= Int -> Int
-```
-
-```
-(\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) 4
---> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) 4
---> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) (4 : Int)
---> (\x . x ,, \x . true) : (Int -> Int) & (Bool -> Bool) ● (4 : Int)
---> (\x . x : (Int -> Int)) ● (4 : Int)
---> 4 : Int : Int
---> 4 : Int
-```
 
 ### Rules
 
@@ -517,7 +272,7 @@ n --> n : Int
 
 
 -------------------------------------------------- Step-Merge-Anno
-(p1 : A),,(p2 : B) --> (p1 : A),,(p2 : B) : (A & B)
+(p1 : A),,(p2 : B) --> p1,,p2 : (A & B)
 
 
 v1 ● v2 --> e
@@ -546,41 +301,17 @@ e2 --> e2'
 v e2 --> v e2'
 
 
-e1 : A --> e1' : A1
+e1 : A --> e : C
 ----------------------------------------------------------- Step-Merge-L
-(e1 : A ,, e2 : B) : A & B --> (e1' : A1 ,, e2 : B) : A1 & B
+e1 ,, e2 : A & B --> e ,, e2 : C & B
 
 
-e2 : B --> e2' : B1
+e2 : B --> e : C
 ---------------------------------------------------------- Step-Merge-R
-(p1 : A ,, e2 : B) : A & B --> (p1 : A ,, e2' : B1) : A & B1
+p1 ,, e2 : A & B --> p1 ,, e : A & C
 ```
 
 ## Typing
-
-### Discussions
-
-```
-Do my system type check with
-(\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) 4,,true => Int & Bool
-
-T |- e2 => A   T ; S, A |- e1 => A -> B
------------------------------------------ TApp1
-T ; S |- e1 e2 => B
-
-4,,true => Int & Bool ✔
-.; Int & Bool |- (\x . x : Int -> Int) ,, (\x . true : Bool -> Bool) => Int & Bool
-
-disjoint A B        T |- e1 => A   T |- e2 => B
------------------------------------------------ TMerge
-T |- e1 ,, e2 => A & B
-
-it lacks a stack ctx S
-
-disjoint A B        T; S |- e1 => A   T; S |- e2 => B
--------------------------------------------------- TMerge-New
-T; S|- e1 ,, e2 => A & B
-```
 
 ### Rules
 
@@ -637,6 +368,47 @@ T |- e <= A
 disjoint A B        T |- e1 => A   T |- e2 => B
 ----------------------------------------------- TMerge
 T |- e1 ,, e2 => A & B
+
+
+disjoint A B        . |- p1 <= A   . |- p2 <= B    not (HasType (p1,,p2))
+----------------------------------------------------------------------------- TMerge-Chk
+. |- p1 ,, p2 <= A & B
+```
+
+### Discussions
+
+```
+(\x . x : Int -> Int) ,, (\x . true : Int -> Bool)
+--> (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool)
+
+is (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) type check?
+
+currently no typing rule checking againt merge
+probably add this rule
+
+disjoint A B        T |- e1 <= A   T |- e2 <= B
+----------------------------------------------- TMerge-Chk
+T |- e1 ,, e2 <= A & B
+
+then works fine with later derivation
+
+x : Int |- x <= Int
+---------------------------
+. |- \x . x <= Int -> Int
+
+TMerge-Chk overlaps with TSub, Here's the solution
+
+disjoint A B        . |- p1 <= A   . |- p2 <= B    not (hastype (p1,,p2))
+----------------------------------------------------------------------------- TMerge-Chk
+. |- p1 ,, p2 <= A & B
+
+hasType Int
+
+hasType T
+
+hasType p1     hasType p2
+--------------------------
+hasType (p1,,p2)
 ```
 
 ## Ordinary
@@ -717,5 +489,25 @@ TopLike (A & B)
 TopLike B
 -------------------- TL-Arrow
 TopLike (A -> B)
+```
+
+## HasType
+
+```
+------------
+HasType A
+-----------
+
+------------------- HT-Int
+HasType Int
+
+
+------------------- HT-Top
+hasType T
+
+
+hasType p1     hasType p2
+-------------------------- HT-Merge
+hasType (p1,,p2)
 ```
 
