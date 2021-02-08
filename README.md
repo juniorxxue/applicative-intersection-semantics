@@ -15,6 +15,7 @@ Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs
 * [Ordinary](#ordinary)
 * [Disjoint](#disjoint)
 * [TopLike](#toplike)
+* [HasType](#hastype)
 
 ## Style Guide
 
@@ -181,10 +182,6 @@ S,I |- A & B <: D
 ```
 
 ## Typed Reduction
-
-```
-
-```
 
 ### Rules
 
