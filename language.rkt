@@ -55,6 +55,8 @@
   #:contract (appsub Psi tau tau)
   [-------------------- "appsub-refl"
    (appsub () tau tau)]
+  [-------------------- "appsub-top"
+   (appsub () tau top)]
   [(sub tau_3 tau_1)
    (appsub (tau ...) tau_2 tau_4)
    -------------------- "appsub-fun"

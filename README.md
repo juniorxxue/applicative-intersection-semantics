@@ -94,7 +94,13 @@ A & B <: C
 S |- A <: B
 -----------
 
-. |- A <: A    AS-Refl
+
+---------------- AS-Refl
+. |- A <: A 
+
+
+---------------- AS-Top
+. |- A <: Top
 
 
 C <: A      S |- B <: D
@@ -469,6 +475,3 @@ HasType e1     HasType e2
 -------------------------- HT-Merge
 HasType (e1,,e2)
 ```
-
-## Q&A
-
