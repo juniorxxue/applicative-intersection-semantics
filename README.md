@@ -1,7 +1,5 @@
 # 		Applicative Intersection Types
 
-Notes : I heavily use [prettify-symbols](https://github.com/juniorxxue/spacemacs.d/blob/master/utils/prettify-redex.el) in emacs, so Redex code may look werid to you :)
-
 ## Table of Contents
 
 * [Style Guide](#style-guide)
@@ -208,16 +206,16 @@ B <: D
 (\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
 
 
-p1 : A -->C p1' : D
+p1 : A -->C p : D
 Ordinary C
 ---------------------------- Tred-Merge-L
-p1,,p2 : A & B -->C p1' : D
+p1,,p2 : A & B -->C p : D
 
 
-p2 : B -->C p2' : D
+p2 : B -->C p : D
 Ordinary C
 ---------------------------- Tred-Merge-L
-p1,,p2 : A & B -->C p2' : D
+p1,,p2 : A & B -->C p : D
 
 
 p : C -->A p1 : D
@@ -268,10 +266,6 @@ e --> e'
 n --> n : Int
 
 
--------------------------------------------------- Step-Merge-Anno
-(p1 : A),,(p2 : B) --> p1,,p2 : (A & B)
-
-
 v1 ● v2 --> e
 ---------------- Step-PApp
 v1 v2 --> e
@@ -296,6 +290,10 @@ e1 e2 --> e1' e2
 e2 --> e2'
 ------------------ Step-App-R
 v e2 --> v e2'
+
+
+-------------------------------------------------- Step-Merge-Anno
+(e1 : A),,(e2 : B) --> e1,,e2 : (A & B)
 
 
 e1 : A --> e : C
@@ -367,45 +365,9 @@ disjoint A B        T |- e1 => A   T |- e2 => B
 T |- e1 ,, e2 => A & B
 
 
-disjoint A B        . |- p1 <= A   . |- p2 <= B    not (HasType (p1,,p2))
+disjoint A B        . |- e1 <= A   . |- e2 <= B    not (HasType (e1,,e2	))
 ----------------------------------------------------------------------------- TMerge-Chk
-. |- p1 ,, p2 <= A & B
-```
-
-### Discussions
-
-```
-(\x . x : Int -> Int) ,, (\x . true : Int -> Bool)
---> (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool)
-
-is (\x . x ,, \x . true) : (Int -> Int) & (Int -> Bool) type check?
-
-currently no typing rule checking againt merge
-probably add this rule
-
-disjoint A B        T |- e1 <= A   T |- e2 <= B
------------------------------------------------ TMerge-Chk
-T |- e1 ,, e2 <= A & B
-
-then works fine with later derivation
-
-x : Int |- x <= Int
----------------------------
-. |- \x . x <= Int -> Int
-
-TMerge-Chk overlaps with TSub, Here's the solution
-
-disjoint A B        . |- p1 <= A   . |- p2 <= B    not (hastype (p1,,p2))
------------------------------------------------------------------------------ TMerge-Chk
-. |- p1 ,, p2 <= A & B
-
-hasType Int
-
-hasType T
-
-hasType p1     hasType p2
---------------------------
-hasType (p1,,p2)
+. |- e1 ,, e2 <= A & B
 ```
 
 ## Ordinary
@@ -492,19 +454,21 @@ TopLike (A -> B)
 
 ```
 ------------
-HasType A
+HasType e
 -----------
 
 ------------------- HT-Int
-HasType Int
+HasType n
 
 
 ------------------- HT-Top
-hasType T
+HasType T
 
 
-hasType p1     hasType p2
+HasType e1     HasType e2
 -------------------------- HT-Merge
-hasType (p1,,p2)
+HasType (e1,,e2)
 ```
+
+## Q&A
 
