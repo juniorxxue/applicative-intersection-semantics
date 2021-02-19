@@ -2,6 +2,7 @@
 (require redex)
 
 ;; this file is a prefix version
+;; NOTE
 
 (define-syntax-rule (draw x) (show-derivations (build-derivations x)))
 (define-syntax-rule (holds x) (judgment-holds x))
@@ -55,18 +56,16 @@
   #:contract (appsub Psi tau tau)
   [-------------------- "appsub-refl"
    (appsub () tau tau)]
-  [-------------------- "appsub-top"
-   (appsub () tau top)]
   [(sub tau_3 tau_1)
    (appsub (tau ...) tau_2 tau_4)
    -------------------- "appsub-fun"
    (appsub (tau ... tau_3) (-> tau_1 tau_2) (-> tau_3 tau_4))]
-  [(appsub Psi tau_1 tau_3)
+  [(appsub (tau tau_4 ...) tau_1 tau_3)
    -------------------- "appsub-andl"
-   (appsub Psi (& tau_1 tau_2) tau_3)]
-  [(appsub Psi tau_2 tau_3)
+   (appsub (tau tau_4 ...) (& tau_1 tau_2) tau_3)]
+  [(appsub (tau tau_4 ...) tau_2 tau_3)
    -------------------- "appsub-andr"
-   (appsub Psi (& tau_1 tau_2) tau_3)]
+   (appsub (tau tau_4 ...) (& tau_1 tau_2) tau_3)]
   )
 
 
@@ -308,8 +307,8 @@
                       (: 4 int)
                       e) e)
 
-(apply-reduction-relation* -->n
-                           (term ((: (doublecomma (: (lambda (x) x)
+#;(apply-reduction-relation* -->n
+                             (term ((: (doublecomma (: (lambda (x) x)
                                            (-> int int))
                                         (: (lambda (x) true)
                                            (-> bool bool)))

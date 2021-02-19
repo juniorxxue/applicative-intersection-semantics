@@ -120,71 +120,6 @@ not (C in Nextinputs(A))
 S, C |- A & B <: D
 ```
 
-### Discussions
-
-```
-dicussion about amiuguity
-
---------- PROPOSAL 1 OPEN ------------------
-
-S |- A <: D
-not (B <: S -> E)
------------------------- AS-AndL
-S |- A & B <: D
-
-for arbitrary E, it's not algorithmic, denied
-
---------- PROPOSAL 1 CLOSE ------------------
-
---------- PROPOSAL 2 OPEN ------------------
-
-S |- A <: D
-not (B <: S -> Top)
------------------------- AS-AndL
-S |- A & B <: D
-
-S -> Top is top-like type,
-
-(string -> char) <: (int -> top) <- that's not what we want
---------- PROPOSAL 2 CLOSE -------------------
-
---------- PROPOSAL 3 OPEN ------------------
-
-S |- A <: D
-not (S <: inputs(B))
------------------------- AS-AndL
-S |- A & B <: D
-
-
-(f: Int -> Int ,, g : Int -> Bool) 4
-there's a ambiuguity above
-S is Int, B is Int -> Bool, so inputs(Int -> Int) is Int, that works
-
-But what if
-(f : Int -> (String -> Int) ,, g : Int -> (Char -> Int)) 4
-S is Int here
-inputs (Int -> (Char -> Int)) should be Int or Int -> Char?
-
-((f : Int -> (Char -> (String -> Int)) ,, g : Int -> (Char -> (String -> Bool)) 4) 'c'
-., Char, Int 
-S is probably Int -> Char
-inputs (B) is Int? Int -> Char? Int -> Char -> String?
---------- PROPOSAL 3 OPEN CLOSE ------------------
-
---------- PROPOSAL 4 OPEN ---------------------
-(f : Int -> Char -> Bool,, (g : String -> String -> Bool,, h : Bool -> Bool -> Bool)) 3
-actually here you want to collect the *first* inputs of g and h
-String,Bool
-and check that Int is not one of those
-so
-
-S,I |- A <: D
-not (I in Nextinputs(B))
------------------------- AS-AndL
-S,I |- A & B <: D
---------- PROPOSAL 4 CLOSE --------------------
-```
-
 ## Typed Reduction
 
 ### Rules
@@ -220,7 +155,7 @@ p1,,p2 : A & B -->C p : D
 
 p2 : B -->C p : D
 Ordinary C
----------------------------- Tred-Merge-L
+---------------------------- Tred-Merge-R
 p1,,p2 : A & B -->C p : D
 
 
