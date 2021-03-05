@@ -29,6 +29,7 @@ lambda (x) x : Int -> Int
 (succ ,, not) 4
 (succ ,, not) (4 ,, true)
 (f : Int & Bool -> Int & Bool ,, g : String -> String) (4 ,, true)
+(lambda (x) x,,True : Int -> Bool) 1
 ```
 
 ## Syntax
@@ -40,12 +41,11 @@ A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
 p ::= T | n | \x . e | p1,,p2
-v ::= p : A | \x . e 
+v ::= p : A | \x . e  
 
 T ::= . | T, x : A
 S ::= . | S, A
 ```
-
 
 ## Subtyping
 
