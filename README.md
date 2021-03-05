@@ -34,14 +34,12 @@ lambda (x) x : Int -> Int
 
 ## Syntax
 
-### Rules
-
 ```
 A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
-p ::= T | n | \x . e | p1,,p2
-v ::= p : A | \x . e  
+p ::= T | n | \x . e
+v ::= p : A | \x . e | v1 ,, v2  
 
 T ::= . | T, x : A
 S ::= . | S, A
@@ -87,8 +85,6 @@ A & B <: C
 
 ## Application Subtyping
 
-### Rules
-
 ```
 -----------
 S |- A <: B
@@ -122,8 +118,6 @@ S, C |- A & B <: D
 
 ## Typed Reduction
 
-### Rules
-
 ```
 ------------------
 v -->A v'
@@ -150,23 +144,21 @@ B <: D
 p1 : A -->C p : D
 Ordinary C
 ---------------------------- Tred-Merge-L
-p1,,p2 : A & B -->C p : D
+p1 : A) ,, (p2 : B) -->C p : D
 
 
 p2 : B -->C p : D
 Ordinary C
 ---------------------------- Tred-Merge-R
-p1,,p2 : A & B -->C p : D
+(p1 : A) ,, (p2 : B) -->C p : D
 
 
 p : C -->A p1 : D
 p : C -->B p2 : E
 --------------------------------- Tred-And
-p : C -->(A & B) p1,,p2 : (D & E)
+p : C -->(A & B) (p1 : D) ,, (p2 : E)
 ```
 ## Parallel Application
-
-### Rules
 
 ```
 ----------------
@@ -187,16 +179,14 @@ v -->A v'
 T ● vl --> T
 
 
-C |- A & B <: D
-p1,,p2 : (A & B) -->D v
-v ● (p : C) --> e
-------------------------------------------- PApp-Merge
-p1,,p2 : (A & B) ● (p : C) --> e
+ptype(vl) |- ptype(v1 ,, v2) <: A
+v1 ,, v2 -->A v
+v ● vl --> e
+-------------------------------------------- PApp-Merge
+v1 ,, v2 ● vl --> e
 ```
 
 ## Reduction
-
-### Rules
 
 ```
 -------------
@@ -233,23 +223,41 @@ e2 --> e2'
 v e2 --> v e2'
 
 
--------------------------------------------------- Step-Merge-Anno
-(e1 : A),,(e2 : B) --> e1,,e2 : (A & B)
-
-
-e1 : A --> e : C
+e1 --> e
 ----------------------------------------------------------- Step-Merge-L
-e1 ,, e2 : A & B --> e ,, e2 : C & B
+e1 ,, e2 : B --> e ,, e2 : B
 
 
-e2 : B --> e : C
+e2 --> e
 ---------------------------------------------------------- Step-Merge-R
-p1 ,, e2 : A & B --> p1 ,, e : A & C
+v ,, e2 : B --> v ,, e
+```
+
+## Principle Type
+
+```
+--------------------
+ptype e => A
+-------------------
+
+------------------ ptype-int
+ptype n => Int
+
+
+------------------ ptype-top
+ptype top => Top
+
+
+------------------ ptype-anno
+ptype (e : A) => A
+
+
+ptype e1 => A   ptype e2 => B
+---------------------------------- ptype-merge
+ptype e1,,e2 => A & B
 ```
 
 ## Typing
-
-### Rules
 
 ```
 --------------
