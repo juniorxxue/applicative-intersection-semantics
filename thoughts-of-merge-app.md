@@ -92,22 +92,6 @@ Int |- succ ,, not => Int -> Int
 .;. |- succ ,, not 4 => Int
 ```
 
-`Int |- Int -> Int <: Int -> Int` is werid, since
-
-we only have
-
-```
----------------- AS-Refl
-. |- A <: A 
-```
-
-**how about**
-
-```
----------------- AS-Refl
-S |- A <: A
-```
-
 ### Reduction
 
 And then reduction part
