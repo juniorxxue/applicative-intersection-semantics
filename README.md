@@ -20,8 +20,8 @@
 ```haskell
 1 
 1 : Int
-lambda (x) x : Int -> Int
-(lambda (x) x) 4
+\x.x : Int -> Int
+(\x.x) 4
 1 ,, true
 1 ,, true : Int & Bool 
 (succ ,, not : Int -> Int) 5
@@ -29,17 +29,21 @@ lambda (x) x : Int -> Int
 (succ ,, not) 4
 (succ ,, not) (4 ,, true)
 (f : Int & Bool -> Int & Bool ,, g : String -> String) (4 ,, true)
-(lambda (x) x,,True : Int -> Bool) 1
+(((\x.x) ,, True) : Int -> Bool) 1
+((\x.x) ,, 3) 4 -- TBD
 ```
 
 ## Syntax
 
-```
+```haskell
 A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
 p ::= T | n | \x . e
-v ::= p : A | \x . e | v1 ,, v2  
+v ::= p : A | v1 ,, v2 | \x . e
+
+-- r ::= p : A | \x . e | v1 ,, v2
+-- exists S, . ; S | r => A
 
 T ::= . | T, x : A
 S ::= . | S, A
@@ -169,6 +173,7 @@ v ● vl --> e
 ----------------------- PApp-Top
 T ● vl --> T
 
+
 ------------------------------- PApp-Abs
 \x . e ● v --> e [x |-> v]
 
@@ -183,6 +188,13 @@ v1 ,, v2 -->A v
 v ● vl --> e
 -------------------------------------------- PApp-Merge
 v1 ,, v2 ● vl --> e
+
+
+Int |- (Int -> Int) & (Bool -> Bool) <: Int -> Int
+succ ,, not -->(Int -> Int) succ
+succ ● 4 --> 5
+--------------------------------------------
+(succ ,, not) 4
 ```
 
 ## Reduction
@@ -199,6 +211,10 @@ n --> n : Int
 v1 ● v2 --> e
 ---------------- Step-PApp
 v1 v2 --> e
+
+
+------------------------ Step-Lam
+(\x . e) v --> [x -> v] e
 
 
 v -->A v'
@@ -219,7 +235,7 @@ e1 e2 --> e1' e2
 
 e2 --> e2'
 ------------------ Step-App-R
-v e2 --> v e2'
+r e2 --> r e2'
 
 
 e1 --> e1'
@@ -230,6 +246,7 @@ e1 ,, e2 --> e1' ,, e2
 e2 --> e2'
 ---------------------------------------------------------- Step-Merge-R
 v ,, e2--> v ,, e2'
+
 ```
 
 ## Principle Type
@@ -316,11 +333,6 @@ T |- e1 ,, e2 => A & B
 T; S |- e1,,e2 => B   S, A |- B <: C
 ----------------------------------------------- T-Merge-pick
 T; S, A |- e1,,e2 => C
-
-
-disjoint A B        . |- e1 <= A   . |- e2 <= B    not (HasType (e1,,e2	))
------------------------------------------------------------------------------ TMerge-Chk
-. |- e1 ,, e2 <= A & B
 ```
 
 ## Ordinary
@@ -401,24 +413,4 @@ TopLike (A & B)
 TopLike B
 -------------------- TL-Arrow
 TopLike (A -> B)
-```
-
-## HasType
-
-```
-------------
-HasType e
------------
-
-------------------- HT-Int
-HasType n
-
-
-------------------- HT-Top
-HasType T
-
-
-HasType e1     HasType e2
--------------------------- HT-Merge
-HasType (e1,,e2)
 ```
