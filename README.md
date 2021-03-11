@@ -20,8 +20,8 @@
 ```haskell
 1 
 1 : Int
-lambda (x) x : Int -> Int
-(lambda (x) x) 4
+\x.x : Int -> Int
+(\x.x) 4
 1 ,, true
 1 ,, true : Int & Bool 
 (succ ,, not : Int -> Int) 5
@@ -29,19 +29,21 @@ lambda (x) x : Int -> Int
 (succ ,, not) 4
 (succ ,, not) (4 ,, true)
 (f : Int & Bool -> Int & Bool ,, g : String -> String) (4 ,, true)
-(lambda (x) x,,True : Int -> Bool) 1
+(((\x.x) ,, True) : Int -> Bool) 1
+((\x.x) ,, 3) 4 -- TBD
 ```
 
 ## Syntax
 
-### Rules
-
-```
+```haskell
 A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
-p ::= T | n | \x . e | p1,,p2
-v ::= p : A | \x . e  
+p ::= T | n | \x . e
+v ::= p : A | v1 ,, v2 | \x . e
+
+-- r ::= p : A | \x . e | v1 ,, v2
+-- exists S, . ; S | r => A
 
 T ::= . | T, x : A
 S ::= . | S, A
@@ -87,8 +89,6 @@ A & B <: C
 
 ## Application Subtyping
 
-### Rules
-
 ```
 -----------
 S |- A <: B
@@ -122,8 +122,6 @@ S, C |- A & B <: D
 
 ## Typed Reduction
 
-### Rules
-
 ```
 ------------------
 v -->A v'
@@ -147,31 +145,34 @@ B <: D
 (\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
 
 
-p1 : A -->C p : D
-Ordinary C
+v1 -->A v1'
+Ordinary A
 ---------------------------- Tred-Merge-L
-p1,,p2 : A & B -->C p : D
+v1 ,, v2-->A v1'
 
 
-p2 : B -->C p : D
-Ordinary C
+v2 -->A v2'
+Ordinary A
 ---------------------------- Tred-Merge-R
-p1,,p2 : A & B -->C p : D
+v1 ,, v2 -->A v2'
 
 
-p : C -->A p1 : D
-p : C -->B p2 : E
+v -->A v1
+v -->B v2
 --------------------------------- Tred-And
-p : C -->(A & B) p1,,p2 : (D & E)
+v -->(A & B) v1,,v2
 ```
 ## Parallel Application
-
-### Rules
 
 ```
 ----------------
 v ● vl --> e
 ----------------
+
+
+----------------------- PApp-Top
+T ● vl --> T
+
 
 ------------------------------- PApp-Abs
 \x . e ● v --> e [x |-> v]
@@ -182,21 +183,21 @@ v -->A v'
 \x . e : A -> B ● v --> e [x |-> v'] : B
 
 
+ptype(vl) |- ptype(v1 ,, v2) <: A
+v1 ,, v2 -->A v
+v ● vl --> e
+-------------------------------------------- PApp-Merge
+v1 ,, v2 ● vl --> e
 
------------------------ PApp-Top
-T ● vl --> T
 
-
-C |- A & B <: D
-p1,,p2 : (A & B) -->D v
-v ● (p : C) --> e
-------------------------------------------- PApp-Merge
-p1,,p2 : (A & B) ● (p : C) --> e
+Int |- (Int -> Int) & (Bool -> Bool) <: Int -> Int
+succ ,, not -->(Int -> Int) succ
+succ ● 4 --> 5
+--------------------------------------------
+(succ ,, not) 4
 ```
 
 ## Reduction
-
-### Rules
 
 ```
 -------------
@@ -210,6 +211,10 @@ n --> n : Int
 v1 ● v2 --> e
 ---------------- Step-PApp
 v1 v2 --> e
+
+
+------------------------ Step-Lam
+(\x . e) v --> [x -> v] e
 
 
 v -->A v'
@@ -230,26 +235,45 @@ e1 e2 --> e1' e2
 
 e2 --> e2'
 ------------------ Step-App-R
-v e2 --> v e2'
+r e2 --> r e2'
 
 
--------------------------------------------------- Step-Merge-Anno
-(e1 : A),,(e2 : B) --> e1,,e2 : (A & B)
-
-
-e1 : A --> e : C
+e1 --> e1'
 ----------------------------------------------------------- Step-Merge-L
-e1 ,, e2 : A & B --> e ,, e2 : C & B
+e1 ,, e2 --> e1' ,, e2
 
 
-e2 : B --> e : C
+e2 --> e2'
 ---------------------------------------------------------- Step-Merge-R
-p1 ,, e2 : A & B --> p1 ,, e : A & C
+v ,, e2--> v ,, e2'
+
+```
+
+## Principle Type
+
+```
+--------------------
+ptype e => A
+-------------------
+
+------------------ ptype-int
+ptype n => Int
+
+
+------------------ ptype-top
+ptype top => Top
+
+
+------------------ ptype-anno
+ptype (e : A) => A
+
+
+ptype e1 => A   ptype e2 => B
+---------------------------------- ptype-merge
+ptype e1,,e2 => A & B
 ```
 
 ## Typing
-
-### Rules
 
 ```
 --------------
@@ -309,11 +333,6 @@ T |- e1 ,, e2 => A & B
 T; S |- e1,,e2 => B   S, A |- B <: C
 ----------------------------------------------- T-Merge-pick
 T; S, A |- e1,,e2 => C
-
-
-disjoint A B        . |- e1 <= A   . |- e2 <= B    not (HasType (e1,,e2	))
------------------------------------------------------------------------------ TMerge-Chk
-. |- e1 ,, e2 <= A & B
 ```
 
 ## Ordinary
@@ -394,24 +413,4 @@ TopLike (A & B)
 TopLike B
 -------------------- TL-Arrow
 TopLike (A -> B)
-```
-
-## HasType
-
-```
-------------
-HasType e
------------
-
-------------------- HT-Int
-HasType n
-
-
-------------------- HT-Top
-HasType T
-
-
-HasType e1     HasType e2
--------------------------- HT-Merge
-HasType (e1,,e2)
 ```
