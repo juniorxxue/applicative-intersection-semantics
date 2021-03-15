@@ -36,13 +36,12 @@ v ● vl --> e
 v1 ,, v2 ● vl --> e
 ```
 
-## Proposal One
-
-### Typing
+## Typing
 
 We look at typing fristly
 
 ```
+             --------------------------------------- We-Stuck-Here!!
 4 => Int     . ; Int |- (\x. x ,, 3) => Int -> Int
 ----------------------------------------------------- TApp1
 .;. |- ((\x. x) ,, 3) 4 => Int
@@ -57,25 +56,26 @@ x : Int ; . |- x => Int
 Int |- \x. x => Int -> Int
 ```
 
-So `T-Merge-pick` should accpet this.
-
-**New: T-Merge-pick rule is valid if one term of merge can infer some type under argument stack.**
+**New: T-Merge-pick rule is valid if only one term of merge can infer some type under argument stack.**
 
 ```
 T; S, A |- e1 => C
+not()
 ------------------------------------------- T-Merge-pick-L
 T; S, A |- e1,,e2 => C
 
 T; S, A |- e2 => C
+not()
 ------------------------------------------- T-Merge-pick-R
 T; S, A |- e1,,e2 => C
 ```
 
 ```4 => Int     . ; Int |- (\x. x ,, 3) => Int -> Int
+             ---------------------------------- T-Abs
              . ; Int |- \x. x => Int -> Int
              ------------------------------------- T-Merge-pick-L
 4 => Int     . ; Int |- (\x. x ,, 3) => Int -> Int
------------------------------------------------------ TApp1
+---------------------------------------------------------- TApp1
 .;. |- ((\x. x) ,, 3) 4 => Int
 ```
 
@@ -88,11 +88,11 @@ Int |- Int -> Int <: Int -> Int    (\x. x+1) <= Int -> Int
 Int |- succ => Int -> Int
 ------------------------------------ T-Merge-Pick-R
 Int |- succ ,, not => Int -> Int
------------------------------------- TApp 1
+------------------------------------ TApp1
 .;. |- succ ,, not 4 => Int
 ```
 
-### Reduction
+## Reduction
 
 And then reduction part
 
@@ -118,7 +118,7 @@ Why we need `ptype`, we try to avoid seeking help from `typing` in the reduction
 
 How snow's type system deal with `succ ,, not 4` , I guess it should be `((succ ,, not) : (Int -> Int)) 4`.
 
-typed reduction should should appear at this place too.
+So, typed reduction should should appear at this place too.
 
 like `Int |- \x. x ,, (3 : Int) --> \x. x`
 
@@ -139,8 +139,6 @@ S, A |- A2 -> B2 <: C
 --------------------------------------------------------------------- Anno-Pick-R
 S, A |- (\x. e1 : A1 -> B1) ,, (\x.e2 : A2 -> B2) -> \x.e2 : A2 -> B2
 ```
-
-
 
 ## Misc
 
