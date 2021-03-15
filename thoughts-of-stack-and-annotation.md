@@ -15,3 +15,11 @@ and then
 
 3 : Int & Int --> 3 ,, 3
 ```
+
+## Nested Argument
+
+```
+Int |- \x . x => Int
+\x : Int . x => Int
+```
+
