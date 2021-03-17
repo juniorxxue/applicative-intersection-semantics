@@ -79,7 +79,7 @@ T; S, A |- e1,,e2 => C
 .;. |- ((\x. x) ,, 3) 4 => Int
 ```
 
-But what about `succ ,, not 4`,  that's the reason we create the `T-merge-pick` rule.
+But what about `(succ ,, not) 4`,  that's the main motivation we create the `T-merge-pick` rule.
 
 ```
 --------------------------------
@@ -91,6 +91,17 @@ Int |- succ ,, not => Int -> Int
 ------------------------------------ TApp1
 .;. |- succ ,, not 4 => Int
 ```
+
+Bruno:
+
+```
+T; S, A |- e1 => C
+T; . |- e2 => B      T; S, A |- B <: ??? 
+------------------------------------------- T-Merge-pick-L
+T; S, A |- e1,,e2 => C
+```
+
+
 
 ## Reduction
 
