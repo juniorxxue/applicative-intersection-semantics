@@ -101,7 +101,11 @@ T; . |- e2 => B      T; S, A |- B <: ???
 T; S, A |- e1,,e2 => C
 ```
 
+Proposed rule cannot reject the above example, where `3 + True` is ill-typed
 
+```
+Int |- \x. x ,, 3 + True => Int -> Int
+```
 
 ## Reduction
 
