@@ -107,6 +107,16 @@ Proposed rule cannot reject the above example, where `3 + True` is ill-typed
 Int |- \x. x ,, 3 + True => Int -> Int
 ```
 
+Ningning:
+
+```
+T; S, A |- e1 => C
+T; . |- e2 => D
+not (S, A |- D <: Top)
+------------------------------------------- T-Merge-pick-L
+T; S, A |- e1,,e2 => C
+```
+
 ## Reduction
 
 And then reduction part
