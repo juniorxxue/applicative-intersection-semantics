@@ -1,5 +1,15 @@
 # Toughts of Value
 
+## Issue 2020/04/07
+
+in lemma `value_cannot_step_further` , problem encountered
+
+```
+\x. x : Top is a value, it can step into (Top : Top)
+by typed reduction
+since \x. x is also a value and triggers typed reduction
+```
+
 ## Form 1
 
 ```

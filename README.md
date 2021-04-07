@@ -1,4 +1,4 @@
-# 		Applicative Intersection Types
+# 	Applicative Intersection Types
 
 ## Table of Contents
 
@@ -40,7 +40,16 @@ A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
 p ::= T | n | \x . e
-v ::= p : A | v1 ,, v2 | \x . e
+r ::= v | \x . e
+v ::= p : A | v1 ,, v2
+
+\x.x : Top
+
+\x.x : (Int -> Int)
+\x.x : Top
+
+-------------
+1 : Top
 
 -- r ::= p : A | \x . e | v1 ,, v2
 -- exists S, . ; S | r => A
@@ -166,8 +175,8 @@ v ● vl --> e
 ----------------
 
 
------------------------ PApp-Top
-T ● vl --> T
+----------------------------- PApp-Top
+(T : Top) ● vl --> (T : Top)
 
 
 ------------------------------- PApp-Abs
@@ -205,6 +214,8 @@ v1 v2 --> e
 ------------------------ Step-Lam
 (\x . e) v --> [x -> v] e
 
+(\x.x) (\x.x : (Int -> Int))
+
 
 v -->A v'
 ------------------------ Step-Anno-Value
@@ -238,7 +249,7 @@ v ,, e2--> v ,, e2'
 
 ```
 
-## Principle Type
+## Principal Type
 
 ```
 --------------------
@@ -275,18 +286,27 @@ T |- e => A   ==   T; . |- e => A
 
 
 |- T
------------- TInt
+------------------ TInt
 T |- n => Int
+
+
+|- T
+------------------ TTop
+T |- Top => Top
 
 
 |- T   x : A \in T
 --------------------- TVar
 T |- x => A
 
+TopLike A
+--------------  T-TopLike-Value
+T | v <= A
 
 
---------------------- T-Val-Top
-T |- v <= Top
+Toplike A,  T, x: Top |- e <= Top
+--------------------------------- T-Lam-Top
+T |- \x. e <= A
 
 
 T, x : A |- e <= B
@@ -320,11 +340,11 @@ T |- e <= A
 
 
 disjoint A B        T |- e1 => A   T |- e2 => B
------------------------------------------------ TMerge
+------------------------------------------------------ TMerge
 T |- e1 ,, e2 => A & B
 
 
-. |- v1 => A     . |- v2 => B      consistency v1 v2
+consist v1 v2      . |- v1 => A     . |- v2 => B
 ------------------------------------------------------ T-Merge-Value
 T |- v1,,v2 => A & B
 
