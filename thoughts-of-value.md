@@ -10,6 +10,45 @@ by typed reduction
 since \x. x is also a value and triggers typed reduction
 ```
 
+What if we introduce another category r
+
+```
+p ::= T | n | \x . e
+r ::= v | \x . e
+v ::= p : A | v1 ,, v2
+```
+
+which brings the changes
+
+* we remove unannotated lambda from typed reduction (actually that's what we want)
+
+* some adaptions from reduction
+
+  * in `Step-PApp`, we deal with four case, thus changes into 
+
+    ```
+    r ● vl --> e
+    ---------------- Step-PApp
+    r vl --> e
+    ```
+
+    * `(T : Top) 3`
+    *  `(\x. x) 3`
+    * `(\x. x : Int -> Int) 3`
+    * `(succ ,, not) 3`
+
+  * in `Step-Anno-Value`, we stay with `v : A` to trigger typed reduction
+
+  * `Step-App-R`, change into
+
+  ```
+  e2 --> e2'
+  ------------------ Step-App-R
+  r e2 --> r e2'
+  ```
+
+  * `Step-Merge-R` stays the same, since currently we won't `\x.e` appear into the merge
+
 ## Form 1
 
 ```

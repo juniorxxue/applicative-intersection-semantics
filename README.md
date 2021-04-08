@@ -43,14 +43,6 @@ p ::= T | n | \x . e
 r ::= v | \x . e
 v ::= p : A | v1 ,, v2
 
-\x.x : Top
-
-\x.x : (Int -> Int)
-\x.x : Top
-
--------------
-1 : Top
-
 -- r ::= p : A | \x . e | v1 ,, v2
 -- exists S, . ; S | r => A
 
@@ -206,15 +198,9 @@ e --> e'
 n --> n : Int
 
 
-v1 ● v2 --> e
+r ● vl --> e
 ---------------- Step-PApp
-v1 v2 --> e
-
-
------------------------- Step-Lam
-(\x . e) v --> [x -> v] e
-
-(\x.x) (\x.x : (Int -> Int))
+r vl --> e
 
 
 v -->A v'
