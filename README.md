@@ -40,8 +40,8 @@ A, B ::= Int | Top | A -> B | A & B
 e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
 p ::= T | n | \x . e
-r ::= v | \x . e
 v ::= p : A | v1 ,, v2
+r ::= v | \x . e
 
 -- r ::= p : A | \x . e | v1 ,, v2
 -- exists S, . ; S | r => A
@@ -145,13 +145,13 @@ B <: D
 v1 -->A v1'
 Ordinary A
 ---------------------------- Tred-Merge-L
-v1 ,, v2-->A v1'
+v1,,v2 -->A v1'
 
 
 v2 -->A v2'
 Ordinary A
 ---------------------------- Tred-Merge-R
-v1 ,, v2 -->A v2'
+v1,,v2 -->A v2'
 
 
 v -->A v1
@@ -180,10 +180,17 @@ v -->A v'
 \x . e : A -> B ● v --> e [x |-> v'] : B
 
 
-ptype(vl) |- ptype(v1 ,, v2) <: A
-v1 ,, v2 -->A v
-v ● vl --> e
--------------------------------------------- PApp-Merge
+ptype(vl) |- ptype(v1 ,, v2) <: ptype(v1)
+v1 ,, v2 -->ptype(vl) v1
+v1 ● vl --> e
+-------------------------------------------- PApp-Merge-L
+v1 ,, v2 ● vl --> e
+
+
+ptype(vl) |- ptype(v1 ,, v2) <: ptype(v2)
+v1 ,, v2 -->ptype(v2) v2
+v2 ● vl --> e
+-------------------------------------------- PApp-Merge-R
 v1 ,, v2 ● vl --> e
 ```
 
@@ -284,6 +291,7 @@ T |- Top => Top
 |- T   x : A \in T
 --------------------- TVar
 T |- x => A
+
 
 TopLike A
 --------------  T-TopLike-Value
