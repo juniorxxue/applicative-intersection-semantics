@@ -41,6 +41,7 @@ e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
 
 p ::= T | n | \x . e
 v ::= p : A | v1 ,, v2
+
 r ::= v | \x . e
 
 -- r ::= p : A | \x . e | v1 ,, v2
@@ -98,6 +99,10 @@ S |- A <: B
 
 ---------------- AS-Refl
 . |- A <: A 
+
+
+----------------------- AS-Top (removed)
+. |- A <: TopLike B
 
 
 C <: A      S |- B <: D
@@ -163,12 +168,12 @@ v -->(A & B) v1,,v2
 
 ```
 ----------------
-v ● vl --> e
+r ● vl --> e
 ----------------
 
-
------------------------------ PApp-Top
-(T : Top) ● vl --> (T : Top)
+TopLike A
+----------------------------- PApp-Top (Newly Added)
+(p : A) ● vl --> (T : Top)
 
 
 ------------------------------- PApp-Abs
@@ -181,14 +186,12 @@ v -->A v'
 
 
 ptype(vl) |- ptype(v1 ,, v2) <: ptype(v1)
-v1 ,, v2 -->ptype(vl) v1
 v1 ● vl --> e
 -------------------------------------------- PApp-Merge-L
 v1 ,, v2 ● vl --> e
 
 
 ptype(vl) |- ptype(v1 ,, v2) <: ptype(v2)
-v1 ,, v2 -->ptype(v2) v2
 v2 ● vl --> e
 -------------------------------------------- PApp-Merge-R
 v1 ,, v2 ● vl --> e
@@ -261,8 +264,8 @@ ptype top => Top
 ptype (e : A) => A
 
 
-ptype e1 => A   ptype e2 => B
----------------------------------- ptype-merge
+ptype e1 => A   ptype e2 => B 
+--------------------------------------------------- ptype-merge
 ptype e1,,e2 => A & B
 ```
 
@@ -294,12 +297,17 @@ T |- x => A
 
 
 TopLike A
---------------  T-TopLike-Value
-T | v <= A
+--------------  T-TopLike-Value (removed)
+T | r <= A
 
 
 Toplike A,  T, x: Top |- e <= Top
---------------------------------- T-Lam-Top
+--------------------------------- T-Lam-Top (removed)
+T |- \x. e <= A
+
+
+TopLike A
+----------------- T-Top
 T |- \x. e <= A
 
 

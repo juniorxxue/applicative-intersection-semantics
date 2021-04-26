@@ -37,6 +37,11 @@ T1, x: A, T2 |- e^x <= B
 C <: A
 ->
 T1, x: C, T2 |- e^x <= B
+
+x : Int |- x <= Int
+Int & Int <: Int
+
+x : Int & Int |- x <= Int
 ```
 
 ## Counter Example
@@ -52,5 +57,13 @@ x : Bool |- 2,,x <= Int
 T |- e <= A
 ->
 T |- e => B /\ B <: A
+```
+
+## First Attempt
+
+add
+
+```
+. | \x . e <= TopLike A
 ```
 
