@@ -21,7 +21,7 @@
 1 
 1 : Int
 \x.x : Int -> Int
-(\x.x) 4
+-- (\x.x) 4
 1 ,, true
 1 ,, true : Int & Bool 
 (succ ,, not : Int -> Int) 5
@@ -30,19 +30,18 @@
 (succ ,, not) (4 ,, true)
 (f : Int & Bool -> Int & Bool ,, g : String -> String) (4 ,, true)
 (((\x.x) ,, True) : Int -> Bool) 1
-((\x.x) ,, 3) 4 -- TBD
+((\x : A.x) ,, 3) 4 -- TBD
 ```
 
 ## Syntax
 
 ```haskell
 A, B ::= Int | Top | A -> B | A & B
-e ::= T | n | x | \x . e | e1 e2 | e1,,e2 | (e : A)
+e ::= T | n | x | \x : A . e | e1 e2 | e1,,e2 | (e : A)
 
-p ::= T | n | \x . e
+p ::= T | n | \x : A. e
 v ::= p : A | v1 ,, v2
-
-r ::= v | \x . e
+r ::= v | \x : A. e
 
 -- r ::= p : A | \x . e | v1 ,, v2
 -- exists S, . ; S | r => A
@@ -140,11 +139,11 @@ TopLike A
 v -->A (T : Top)
 
 
-not (TopLike C)
+not (TopLike D)
 C <: A
 B <: D
 ----------------------------------------------------- Tred-Arrow-Annotated
-(\x . e) : A -> B   -->(C -> D)     (\x . e) : A -> D
+(\x : A. e) : A -> B  -->(C -> D)     (\x : A . e) : C -> D
 
 
 v1 -->A v1'
@@ -177,12 +176,13 @@ TopLike A
 
 
 ------------------------------- PApp-Abs
-\x . e ● v --> e [x |-> v]
+\x : A. e ● v --> e [x |-> v]
 
 
 v -->A v'
-------------------------------------------- PApp-Abs-Anno
-\x . e : A -> B ● v --> e [x |-> v'] : B
+not (toplike B)
+-------------------------------------------- PApp-Abs-Anno
+\x ：A. e : A -> B ● v --> e [x |-> v'] : B
 
 
 ptype(vl) |- ptype(v1 ,, v2) <: ptype(v1)
@@ -307,18 +307,28 @@ T |- \x. e <= A
 
 
 TopLike A
------------------ T-Top
-T |- \x. e <= A
+----------------- T-Top (newly added)
+T |- \x : A . e <= A
 
 
 T, x : A |- e <= B
------------------------------ TLam1
+----------------------------- TLam1 (removed)
 T |- \x. e <= A -> B
 
 
 T, x : A ; S |- e => B
------------------------------- TLam2
+------------------------------ TLam2 (removed)
 T ; S, A |- \x. e => A -> B
+
+
+T, x : A |- e => B
+---------------------------- TLam1 (newly added)
+T |- \x : A . e => A -> B
+
+
+T, x : A ; S |- e => B       C <: A
+-------------------------------------- TLam2 (newly added)
+T; S, C |- \x : A . e => A -> B
 
 
 S |- A <: B    T |- e <= A
@@ -352,8 +362,18 @@ T |- v1,,v2 => A & B
 
 
 T; S |- e1,,e2 => B   S, A |- B <: C
------------------------------------------------ T-Merge-pick
+----------------------------------------------- T-Merge-pick (removed)
 T; S, A |- e1,,e2 => C
+
+
+T; S |- e1,,e2 => A & B     S, C |- A & B <: A
+------------------------------------------------ T-Merge-pick-L (newly added)
+T; S, C |- e1,,e2 => A
+
+
+T; S |- e1,,e2 => A & B     S, C |- A & B <: B
+------------------------------------------------ T-Merge-pick-R (newly added)
+T; S, C |- e1,,e2 => B
 ```
 
 ## Ordinary
