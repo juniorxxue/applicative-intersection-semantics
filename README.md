@@ -18,9 +18,9 @@
 ## Style Guide
 
 ```haskell
-1 
+1
 1 : Int
-\x.x : Int -> Int
+-- \x.x : Int -> Int
 -- (\x.x) 4
 1 ,, true
 1 ,, true : Int & Bool 
@@ -110,13 +110,13 @@ S, C |- A -> B <: C -> D
 
 
 S, C |- A <: D
-not (C in Nextinputs(B))
+not (B <: S -> E)    for arbitrary E
 ------------------------ AS-AndL
 S, C |- A & B <: D
 
 
 S, C |- B <: D
-not (C in Nextinputs(A))
+not (A <: S -> E)    for arbitrary E
 ------------------------ AS-AndR
 S, C |- A & B <: D
 ```
@@ -143,7 +143,7 @@ not (TopLike D)
 C <: A
 B <: D
 ----------------------------------------------------- Tred-Arrow-Annotated
-(\x : A. e) : A -> B  -->(C -> D)     (\x : A . e) : C -> D
+(\x : E. e) : A -> B  -->(C -> D)     (\x : E . e) : C -> D
 
 
 v1 -->A v1'
@@ -181,8 +181,8 @@ TopLike A
 
 v -->A v'
 not (toplike B)
--------------------------------------------- PApp-Abs-Anno
-\x ：A. e : A -> B ● v --> e [x |-> v'] : B
+-------------------------------------------- PApp-Abs-Anno (not sure)
+\x : A. e : A -> B ● v --> e [x |-> v'] : B
 
 
 ptype(vl) |- ptype(v1 ,, v2) <: ptype(v1)
@@ -306,9 +306,9 @@ Toplike A,  T, x: Top |- e <= Top
 T |- \x. e <= A
 
 
-TopLike A
+TopLike B
 ----------------- T-Top (newly added)
-T |- \x : A . e <= A
+T |- \x : A . e <= B
 
 
 T, x : A |- e <= B
