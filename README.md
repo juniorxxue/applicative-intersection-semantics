@@ -111,9 +111,12 @@ S, C |- A -> B <: C -> D
 
 S, C |- A <: D
 not (B <: S -> E)    for arbitrary E
+(B <: D)
 ------------------------ AS-AndL
 S, C |- A & B <: D
 
+
+Int |- (Int -> Int) & (Bool -> Bool) <: Int -> Int
 
 S, C |- B <: D
 not (A <: S -> E)    for arbitrary E
@@ -206,6 +209,10 @@ e --> e'
 
 ----------------------- Step-Int-Anno
 n --> n : Int
+
+
+----------------------- Step-Top-Anno
+T --> T : Top
 
 
 r ● vl --> e
@@ -362,17 +369,17 @@ T |- v1,,v2 => A & B
 
 
 T; S |- e1,,e2 => B   S, A |- B <: C
------------------------------------------------ T-Merge-pick (removed)
+----------------------------------------------- T-Merge-pick (current)
 T; S, A |- e1,,e2 => C
 
 
 T; S |- e1,,e2 => A & B     S, C |- A & B <: A
------------------------------------------------- T-Merge-pick-L (newly added)
+------------------------------------------------ T-Merge-pick-L (newly proposed)
 T; S, C |- e1,,e2 => A
 
 
 T; S |- e1,,e2 => A & B     S, C |- A & B <: B
------------------------------------------------- T-Merge-pick-R (newly added)
+------------------------------------------------ T-Merge-pick-R (newly proposed)
 T; S, C |- e1,,e2 => B
 ```
 
