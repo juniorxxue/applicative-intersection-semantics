@@ -41,7 +41,7 @@ e ::= T | n | x | \x : A . e | e1 e2 | e1,,e2 | (e : A)
 
 p ::= T | n | \x : A. e
 v ::= p : A | v1 ,, v2
-r ::= v | \x : A. e
+-- r ::= v | \x : A. e
 
 -- r ::= p : A | \x . e | v1 ,, v2
 -- exists S, . ; S | r => A
@@ -95,13 +95,14 @@ A & B <: C
 S |- A <: B
 -----------
 
+not (TopLike A)
+------------------------ AS-Refl
+. |- A <: A
 
----------------- AS-Refl
-. |- A <: A 
 
-
------------------------ AS-Top (removed)
-. |- A <: TopLike B
+TopLike A    TopLike B
+------------------------------ AS-Toplike
+. |- A <: B
 
 
 C <: A      S |- B <: D
@@ -110,16 +111,11 @@ S, C |- A -> B <: C -> D
 
 
 S, C |- A <: D
-not (B <: S -> E)    for arbitrary E
-(B <: D)
 ------------------------ AS-AndL
 S, C |- A & B <: D
 
 
-Int |- (Int -> Int) & (Bool -> Bool) <: Int -> Int
-
 S, C |- B <: D
-not (A <: S -> E)    for arbitrary E
 ------------------------ AS-AndR
 S, C |- A & B <: D
 ```
@@ -151,6 +147,7 @@ B <: D
 
 v1 -->A v1'
 Ordinary A
+-| v2 => B   not (B <: A)
 ---------------------------- Tred-Merge-L
 v1,,v2 -->A v1'
 
@@ -170,16 +167,12 @@ v -->(A & B) v1,,v2
 
 ```
 ----------------
-r ● vl --> e
+v ● vl --> e
 ----------------
 
 TopLike A
 ----------------------------- PApp-Top (Newly Added)
 (p : A) ● vl --> (T : Top)
-
-
-------------------------------- PApp-Abs
-\x : A. e ● v --> e [x |-> v]
 
 
 v -->A v'
@@ -215,9 +208,9 @@ n --> n : Int
 T --> T : Top
 
 
-r ● vl --> e
+v ● vl --> e
 ---------------- Step-PApp
-r vl --> e
+v vl --> e
 
 
 v -->A v'
@@ -238,7 +231,7 @@ e1 e2 --> e1' e2
 
 e2 --> e2'
 ------------------ Step-App-R
-r e2 --> r e2'
+v e2 --> r e2'
 
 
 e1 --> e1'
@@ -303,40 +296,10 @@ T |- Top => Top
 T |- x => A
 
 
-TopLike A
---------------  T-TopLike-Value (removed)
-T | r <= A
-
-
-Toplike A,  T, x: Top |- e <= Top
---------------------------------- T-Lam-Top (removed)
-T |- \x. e <= A
-
-
-TopLike B
------------------ T-Top (newly added)
-T |- \x : A . e <= B
-
-
-T, x : A |- e <= B
------------------------------ TLam1 (removed)
-T |- \x. e <= A -> B
-
-
-T, x : A ; S |- e => B
------------------------------- TLam2 (removed)
-T ; S, A |- \x. e => A -> B
-
-
-T, x : A |- e => B
----------------------------- TLam1 (newly added)
-T |- \x : A . e => A -> B
-
-
-T, x : A ; S |- e => B       C <: A
--------------------------------------- TLam2 (newly added)
-T; S, C |- \x : A . e => A -> B
-
+T, x : A ; S |- e <= B      A -> B <: D
+---------------------------------------------- TLam-Chk
+T; S, C |- \x : A . e : A -> B <= D
+ 
 
 S |- A <: B    T |- e <= A
 ----------------------------- TAnn
