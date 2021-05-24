@@ -41,10 +41,6 @@ e ::= T | n | x | \x : A . e | e1 e2 | e1,,e2 | (e : A)
 
 p ::= T | n | \x : A. e
 v ::= p : A | v1 ,, v2
--- r ::= v | \x : A. e
-
--- r ::= p : A | \x . e | v1 ,, v2
--- exists S, . ; S | r => A
 
 T ::= . | T, x : A
 S ::= . | S, A
@@ -95,13 +91,13 @@ A & B <: C
 S |- A <: B
 -----------
 
-not (TopLike A)
+
 ------------------------ AS-Refl
 . |- A <: A
 
 
 TopLike A    TopLike B
------------------------------- AS-Toplike
+------------------------------ AS-Toplike (deleted)
 . |- A <: B
 
 
@@ -111,11 +107,13 @@ S, C |- A -> B <: C -> D
 
 
 S, C |- A <: D
+side-condition1
 ------------------------ AS-AndL
 S, C |- A & B <: D
 
 
 S, C |- B <: D
+side-condition2
 ------------------------ AS-AndR
 S, C |- A & B <: D
 ```
@@ -135,7 +133,7 @@ n : Int -->Int n : Int
 Ordinary A
 TopLike A
 ------------------- Tred-Top
-v -->A (T : Top)
+v -->A (T : A)
 
 
 not (TopLike D)
@@ -147,7 +145,8 @@ B <: D
 
 v1 -->A v1'
 Ordinary A
--| v2 => B   not (B <: A)
+
+(-| v2 => B   not (B <: A))
 ---------------------------- Tred-Merge-L
 v1,,v2 -->A v1'
 
@@ -170,9 +169,9 @@ v -->(A & B) v1,,v2
 v ● vl --> e
 ----------------
 
-TopLike A
+TopLike (ptype v)
 ----------------------------- PApp-Top (Newly Added)
-(p : A) ● vl --> (T : Top)
+v ● vl --> (T : Top) (ptype v)
 
 
 v -->A v'
@@ -294,6 +293,11 @@ T |- Top => Top
 |- T   x : A \in T
 --------------------- TVar
 T |- x => A
+
+
+T, x : A |- e <= C   A <: B
+--------------------------------- TLam
+T |- \x : A .e <= B -> C
 
 
 T, x : A ; S |- e <= B      A -> B <: D
