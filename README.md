@@ -1,21 +1,6 @@
 # 	Applicative Intersection Types
 
-## Table of Contents
-
-* [Style Guide](#style-guide)
-* [Syntax](#syntax)
-* [Subtyping](#subtyping)
-* [Application Subtyping](#application-subtyping)
-* [Typed Reduction](#typed-reduction)
-* [Parallel Application](#parallel-application)
-* [Reduction](#reduction)
-* [Typing](#typing)
-* [Ordinary](#ordinary)
-* [Disjoint](#disjoint)
-* [TopLike](#toplike)
-* [HasType](#hastype)
-
-## Style Guide
+## Style Guides
 
 ```haskell
 1
@@ -59,9 +44,9 @@ Int <: Int         S-Int
 A <: Top           S-Top
 
 
-Top <: D
+Top <: B2
 ----------------   S-TopArr
-A <: C -> D
+A <: B1 -> B2
 
 
 C <: A    B <: D
@@ -175,7 +160,7 @@ v ● vl --> 1 : (ptype v)
 v -->A v'
 not (toplike B)
 -------------------------------------------- PApp-Abs-Anno (not sure)
-\x : A. e : A -> B ● v --> e [x |-> v'] : B
+\x : C. e : A -> B ● v --> e [x |-> v'] : B
 
 
 ptype(vl) |- ptype(v1 ,, v2) <: ptype(v1)
@@ -228,12 +213,12 @@ v e2 --> r e2'
 
 
 e1 --> e1'
------------------------------------------------------------ Step-Merge-L
+---------------------------- Step-Merge-L
 e1 ,, e2 --> e1' ,, e2
 
 
 e2 --> e2'
----------------------------------------------------------- Step-Merge-R
+----------------------------- Step-Merge-R
 v ,, e2 --> v ,, e2'
 
 ```
@@ -286,7 +271,7 @@ T |- \x : A .e <= B -> C
 
 
 T, x : A ; S |- e <= B      A -> B <: D
----------------------------------------------- TLam-Chk
+---------------------------------------------- TLam-Chk (temporily removed)
 T; S, C |- \x : A . e : A -> B <= D
  
 
