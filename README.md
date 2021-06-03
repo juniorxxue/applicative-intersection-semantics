@@ -201,10 +201,6 @@ e --> e'
 n --> n : Int
 
 
------------------------ Step-Top-Anno
-T --> T : Top
-
-
 v ● vl --> e
 ---------------- Step-PApp
 v vl --> e
@@ -251,10 +247,6 @@ ptype e => A
 
 ------------------ ptype-int
 ptype n => Int
-
-
------------------- ptype-top
-ptype top => Top
 
 
 ------------------ ptype-anno
