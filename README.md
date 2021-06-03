@@ -37,9 +37,9 @@
 
 ```haskell
 A, B ::= Int | Top | A -> B | A & B
-e ::= T | n | x | \x : A . e | e1 e2 | e1,,e2 | (e : A)
+e ::= n | x | \x : A . e | e1 e2 | e1,,e2 | (e : A)
 
-p ::= T | n | \x : A. e
+p ::= n | \x : A. e
 v ::= p : A | v1 ,, v2
 
 T ::= . | T, x : A
@@ -133,7 +133,7 @@ n : Int -->Int n : Int
 Ordinary A
 TopLike A
 ------------------- Tred-Top
-v -->A (T : A)
+v -->A (1 : A)
 
 
 not (TopLike D)
@@ -145,8 +145,6 @@ B <: D
 
 v1 -->A v1'
 Ordinary A
-
-(-| v2 => B   not (B <: A))
 ---------------------------- Tred-Merge-L
 v1,,v2 -->A v1'
 
@@ -171,7 +169,7 @@ v ● vl --> e
 
 TopLike (ptype v)
 ----------------------------- PApp-Top (Newly Added)
-v ● vl --> (T : Top) (ptype v)
+v ● vl --> 1 : (ptype v)
 
 
 v -->A v'
@@ -240,11 +238,11 @@ e1 ,, e2 --> e1' ,, e2
 
 e2 --> e2'
 ---------------------------------------------------------- Step-Merge-R
-v ,, e2--> v ,, e2'
+v ,, e2 --> v ,, e2'
 
 ```
 
-## Principal Type
+## Principal Typing
 
 ```
 --------------------
@@ -283,11 +281,6 @@ T |- e => A   ==   T; . |- e => A
 |- T
 ------------------ TInt
 T |- n => Int
-
-
-|- T
------------------- TTop
-T |- Top => Top
 
 
 |- T   x : A \in T
