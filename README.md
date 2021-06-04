@@ -265,14 +265,14 @@ T |- n => Int
 T |- x => A
 
 
-T, x : A |- e <= C   A <: B
+TopLike B
+-------------------------- TLam-Top
+T | \x : A . e <= B
+
+
+T, x : A |- e <= C     B <: A
 --------------------------------- TLam
 T |- \x : A .e <= B -> C
-
-
-T, x : A ; S |- e <= B      A -> B <: D
----------------------------------------------- TLam-Chk (temporily removed)
-T; S, C |- \x : A . e : A -> B <= D
  
 
 S |- A <: B    T |- e <= A
