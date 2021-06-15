@@ -81,11 +81,6 @@ S |- A <: B
 . |- A <: A
 
 
-TopLike A    TopLike B
------------------------------- AS-Toplike (deleted)
-. |- A <: B
-
-
 C <: A      S |- B <: D
 ------------------------ AS-Fun
 S, C |- A -> B <: C -> D
@@ -164,12 +159,14 @@ not (toplike B)
 
 
 ptype(vl) |- ptype(v1 ,, v2) <: ptype(v1)
+not (toplike ptype(v1 ,, v2))
 v1 ● vl --> e
 -------------------------------------------- PApp-Merge-L
 v1 ,, v2 ● vl --> e
 
 
 ptype(vl) |- ptype(v1 ,, v2) <: ptype(v2)
+not (toplike ptype(v1 ,, v2))
 v2 ● vl --> e
 -------------------------------------------- PApp-Merge-R
 v1 ,, v2 ● vl --> e
@@ -267,7 +264,7 @@ T |- x => A
 
 TopLike B
 -------------------------- TLam-Top
-T | \x : A . e <= B
+T | p <= B
 
 
 T, x : A |- e <= C     B <: A
@@ -309,15 +306,6 @@ T; S |- e1,,e2 => B   S, A |- B <: C
 ----------------------------------------------- T-Merge-pick (current)
 T; S, A |- e1,,e2 => C
 
-
-T; S |- e1,,e2 => A & B     S, C |- A & B <: A
------------------------------------------------- T-Merge-pick-L (newly proposed)
-T; S, C |- e1,,e2 => A
-
-
-T; S |- e1,,e2 => A & B     S, C |- A & B <: B
------------------------------------------------- T-Merge-pick-R (newly proposed)
-T; S, C |- e1,,e2 => B
 ```
 
 ## Ordinary
