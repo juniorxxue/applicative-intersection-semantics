@@ -217,7 +217,6 @@ e1 ,, e2 --> e1' ,, e2
 e2 --> e2'
 ----------------------------- Step-Merge-R
 v ,, e2 --> v ,, e2'
-
 ```
 
 ## Principal Typing
@@ -292,14 +291,14 @@ T |- e => B     B <: A
 T |- e <= A
 
 
-disjoint A B        T |- e1 => A   T |- e2 => B
+disjoint A B        T, S |- e1 => A   T, S |- e2 => B
 ------------------------------------------------------ TMerge
-T |- e1 ,, e2 => A & B
+T, S|- e1 ,, e2 => A & B
 
 
 consist v1 v2      . |- v1 => A     . |- v2 => B
 ------------------------------------------------------ T-Merge-Value
-T |- v1,,v2 => A & B
+T, S |- v1,,v2 => A & B
 
 
 T; S |- e1,,e2 => B   S, A |- B <: C
