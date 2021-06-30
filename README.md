@@ -190,7 +190,7 @@ v vl --> e
 
 v -->A v'
 ------------------------ Step-Anno-Value
-v : A -> v'
+v : A --> v'
 
 
 not value (e : A)
@@ -306,9 +306,14 @@ T; S |- e1,,e2 => B   S, A |- B <: C
 T; S, A |- e1,,e2 => C
 
 
-T |- e <= A    T |- e <= B
---------------------------------- T-Chk-And (newly added)
-T |- e <= A & B
+T, x : A |- e => B
+---------------------------- TLam1 (newly added)
+T |- \x : A . e => A -> B
+
+
+T, x : A ; S |- e => B       C <: A
+-------------------------------------- TLam2 (newly added)
+T; S, C |- \x : A . e => A -> B
 ```
 
 ## Ordinary
